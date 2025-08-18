@@ -28,7 +28,10 @@ interface ExportDropdownProps {
   hasPRD: boolean
   onDownload: (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd') => void
   onGeneratePRD: (id: string) => void
+  onGenerateNotes?: (id: string) => void
   isGeneratingPRD: boolean
+  isAuthenticated?: boolean
+  userTokens?: {tokens: number, hasTokens: boolean} | null
 }
 
 export default function ExportDropdown({
@@ -38,7 +41,10 @@ export default function ExportDropdown({
   hasPRD,
   onDownload,
   onGeneratePRD,
-  isGeneratingPRD
+  onGenerateNotes,
+  isGeneratingPRD,
+  isAuthenticated = false,
+  userTokens
 }: ExportDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -68,25 +74,44 @@ export default function ExportDropdown({
       id: 'notes',
       label: 'Download Notes',
       icon: <Download className="h-4 w-4" />,
-      description: 'AI-generated structured notes',
-      action: () => onDownload(transcriptionId, 'notes'),
-      available: hasNotes
+      description: isAuthenticated ? 'AI-generated structured notes' : 'Sign in required for AI notes',
+      action: isAuthenticated ? () => onDownload(transcriptionId, 'notes') : () => window.location.href = '/auth/signin',
+      available: isAuthenticated && hasNotes,
+      disabled: !isAuthenticated
     },
     {
       id: 'notion',
       label: 'Download for Notion',
       icon: <Database className="h-4 w-4" />,
-      description: 'Formatted for Notion import',
-      action: () => onDownload(transcriptionId, 'notion'),
-      available: hasNotes
+      description: isAuthenticated ? 'Formatted for Notion import' : 'Sign in required for Notion export',
+      action: isAuthenticated ? () => onDownload(transcriptionId, 'notion') : () => window.location.href = '/auth/signin',
+      available: isAuthenticated && hasNotes,
+      disabled: !isAuthenticated
+    },
+    {
+      id: 'generate-notes',
+      label: 'Generate Notes',
+      icon: <Sparkles className="h-4 w-4" />,
+      description: !isAuthenticated ? 'Sign in required for AI features' : 
+                  !userTokens?.hasTokens ? 'No tokens remaining' : 
+                  'Generate AI notes from transcription',
+      action: !isAuthenticated ? () => window.location.href = '/auth/signin' : 
+              !userTokens?.hasTokens ? () => {} : 
+              () => onGenerateNotes?.(transcriptionId),
+      available: !hasNotes,
+      disabled: !isAuthenticated || !userTokens?.hasTokens
     },
     {
       id: 'generate-prd',
       label: isGeneratingPRD ? 'Generating PRD...' : 'Generate PRD',
       icon: isGeneratingPRD ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />,
-      description: isGeneratingPRD ? 'AI is analyzing your notes and creating a comprehensive PRD...' : 'Create Product Requirements Document from your notes',
-      action: () => onGeneratePRD(transcriptionId),
-      disabled: isGeneratingPRD,
+      description: !isAuthenticated ? 'Sign in required for AI features' :
+                  !userTokens?.hasTokens ? 'No tokens remaining' :
+                  isGeneratingPRD ? 'AI is analyzing your notes and creating a comprehensive PRD...' : 'Create Product Requirements Document from your notes',
+      action: !isAuthenticated ? () => window.location.href = '/auth/signin' : 
+              !userTokens?.hasTokens ? () => {} : 
+              () => onGeneratePRD(transcriptionId),
+      disabled: isGeneratingPRD || !isAuthenticated || !userTokens?.hasTokens,
       loading: isGeneratingPRD,
       available: hasNotes && !hasPRD
     },
@@ -133,7 +158,7 @@ export default function ExportDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
+        <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-[200] py-1">
           <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide border-b border-gray-100">
             Export Options
           </div>

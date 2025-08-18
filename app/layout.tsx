@@ -1,9 +1,27 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import AppProvider from '@/components/AppProvider'
 
 export const metadata: Metadata = {
-  title: 'Audio Transcriber',
-  description: 'Transcribe audio from YouTube, Spotify, and other platforms with AI-powered notes',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  title: 'TranscribeAI - Free Audio Transcript Generator',
+  description: 'Transform audio content from any platform into searchable text and organized notes. Instantly, without uploading video files.',
+  keywords: 'audio transcription, youtube transcript, podcast transcription, AI transcriber, audio to text',
+  authors: [{ name: 'TranscribeAI' }],
+  openGraph: {
+    title: 'TranscribeAI - Free Audio Transcript Generator',
+    description: 'Transform audio content from any platform into searchable text and organized notes.',
+    type: 'website',
+    url: '/',
+    siteName: 'TranscribeAI',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TranscribeAI - Free Audio Transcript Generator',
+    description: 'Transform audio content from any platform into searchable text and organized notes.',
+  },
 }
 
 export default function RootLayout({
@@ -13,18 +31,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 min-h-screen">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <header className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Audio Transcriber
-            </h1>
-            <p className="text-lg text-gray-600">
-              Transform audio content from any platform into searchable text and organized notes
-            </p>
-          </header>
-          {children}
-        </div>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.svg" />
+      </head>
+      <body className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
+        <AppProvider>
+          <Header />
+          <main className="pt-16">
+            {children}
+          </main>
+          <Footer />
+        </AppProvider>
       </body>
     </html>
   )

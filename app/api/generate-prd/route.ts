@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { Transcription } from '@/lib/models/Transcription'
 import { ObjectId } from 'mongodb'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../auth/[...nextauth]/route'
+import { consumeUserTokenWithHistory, checkUserTokens } from '@/lib/usage'
 import OpenAI from 'openai'
 
 // Initialize OpenAI client
@@ -97,6 +100,12 @@ Please create a detailed PRD based on this content, following the structure outl
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { transcriptionId } = body
 
@@ -112,12 +121,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Get transcription from database
+    // Get transcription from database first
     const db = await getDatabase()
     const transcriptionsCollection = db.collection<Transcription>('transcriptions')
 
     const transcription = await transcriptionsCollection.findOne({ 
-      _id: new ObjectId(transcriptionId) 
+      _id: new ObjectId(transcriptionId),
+      userId: session.user.id
     })
 
     if (!transcription) {
@@ -136,6 +146,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: 'No notes available for this transcription. PRD generation requires notes.' 
       }, { status: 404 })
+    }
+
+    // Check if user has tokens (but don't consume yet)
+    const { tokenCount } = await checkUserTokens(session.user.id)
+    if (tokenCount < 2) {
+      return NextResponse.json({ 
+        error: 'Insufficient tokens. PRD generation requires 2 tokens. Please purchase more tokens to continue.',
+        code: 'INSUFFICIENT_TOKENS'
+      }, { status: 402 })
     }
 
     // Initialize OpenAI client
@@ -209,10 +228,26 @@ ${prdContent}
       }
     )
 
+    // Only consume tokens AFTER successful generation and saving
+    const { success, remainingTokens } = await consumeUserTokenWithHistory(
+      session.user.id,
+      'prd_generation',
+      transcriptionId,
+      transcription.title
+    )
+    
+    if (!success) {
+      return NextResponse.json({ 
+        error: 'Failed to consume tokens. Please try again.',
+        code: 'TOKEN_CONSUMPTION_FAILED'
+      }, { status: 500 })
+    }
+
     return NextResponse.json({ 
       success: true, 
       prd: fullPRD,
-      title: title
+      title: title,
+      remainingTokens
     })
 
   } catch (error: any) {

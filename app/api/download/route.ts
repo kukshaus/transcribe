@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { Transcription } from '@/lib/models/Transcription'
 import { ObjectId } from 'mongodb'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../auth/[...nextauth]/route'
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
     const type = searchParams.get('type') as 'transcription' | 'notes' | 'notion' | 'prd'
@@ -25,7 +33,8 @@ export async function GET(request: NextRequest) {
     const transcriptionsCollection = db.collection<Transcription>('transcriptions')
 
     const transcription = await transcriptionsCollection.findOne({ 
-      _id: new ObjectId(id) 
+      _id: new ObjectId(id),
+      userId: session.user.id
     })
 
     if (!transcription) {

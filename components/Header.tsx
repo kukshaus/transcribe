@@ -1,0 +1,70 @@
+'use client'
+
+import Link from 'next/link'
+import { useSession, signIn, signOut } from 'next-auth/react'
+import { User, LogOut } from 'lucide-react'
+import Logo from './Logo'
+
+export default function Header() {
+  const { data: session, status } = useSession()
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-30 bg-black/20 backdrop-blur-md border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link href="/">
+              <Logo size="sm" variant="light" showText={true} />
+            </Link>
+          </div>
+
+          {/* Authentication UI */}
+          <div className="flex items-center space-x-4">
+            {status === 'loading' ? (
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            ) : session ? (
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/profile"
+                  className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
+                >
+                  {session.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || 'User'}
+                      className="h-8 w-8 rounded-full border-2 border-white/20"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center border-2 border-white/20">
+                      <User className="h-4 w-4 text-white" />
+                    </div>
+                  )}
+                  <span className="hidden sm:inline text-sm font-medium">
+                    {session.user?.name?.split(' ')[0] || 'Profile'}
+                  </span>
+                </Link>
+                
+                <button
+                  onClick={() => signOut()}
+                  className="flex items-center space-x-1 text-white/60 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline text-sm">Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => signIn()}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}

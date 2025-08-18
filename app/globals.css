@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Custom toast styles to prevent weird text wrapping */
+.word-break-normal {
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  white-space: normal;
+}
+
 @layer base {
   html {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;

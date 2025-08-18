@@ -67,27 +67,27 @@ function Toast({ toast, onClose }: ToastProps) {
 
   return (
     <div
-      className={`pointer-events-auto w-full max-w-md transition-all duration-300 ease-in-out ${
+      className={`pointer-events-auto w-full max-w-sm transition-all duration-300 ease-in-out ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
       <div className={getStyles()}>
         <div className="p-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0 mt-0.5">
               {getIcon()}
             </div>
-            <div className="ml-3 w-0 flex-1 pt-0.5">
-              <p className="text-sm font-medium text-gray-900 break-words">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 word-break-normal">
                 {toast.title}
               </p>
               {toast.message && (
-                <p className="mt-1 text-sm text-gray-500 break-words leading-relaxed">
+                <p className="mt-1 text-sm text-gray-500 word-break-normal leading-relaxed">
                   {toast.message}
                 </p>
               )}
             </div>
-            <div className="ml-4 flex flex-shrink-0">
+            <div className="flex-shrink-0">
               <button
                 className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 onClick={handleClose}
@@ -109,7 +109,7 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col space-y-3 pointer-events-none max-w-sm sm:max-w-md">
+    <div className="fixed top-4 right-4 z-50 flex flex-col space-y-3 pointer-events-none w-80">
       {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onClose={onClose} />
       ))}

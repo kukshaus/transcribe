@@ -1,7 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Link, Upload } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Upload, Play, Clock, Eye } from 'lucide-react'
+
+interface VideoMetadata {
+  title: string
+  duration: number | null
+  thumbnail: string | null
+  url: string
+}
 
 interface UrlInputProps {
   onSubmit: (url: string) => void
@@ -11,6 +18,9 @@ interface UrlInputProps {
 export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
   const [url, setUrl] = useState('')
   const [isValidUrl, setIsValidUrl] = useState(false)
+  const [metadata, setMetadata] = useState<VideoMetadata | null>(null)
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false)
+  const [metadataError, setMetadataError] = useState<string | null>(null)
 
   const validateUrl = (inputUrl: string) => {
     try {
@@ -27,6 +37,50 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
     }
   }
 
+  const fetchMetadata = async (inputUrl: string) => {
+    if (!validateUrl(inputUrl)) return
+
+    setIsLoadingMetadata(true)
+    setMetadataError(null)
+
+    try {
+      const response = await fetch('/api/metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: inputUrl }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setMetadata(data.metadata)
+      } else {
+        setMetadataError('Could not load video information')
+      }
+    } catch (error) {
+      console.error('Error fetching metadata:', error)
+      setMetadataError('Could not load video information')
+    } finally {
+      setIsLoadingMetadata(false)
+    }
+  }
+
+  // Debounced metadata fetching
+  useEffect(() => {
+    if (!url || !isValidUrl) {
+      setMetadata(null)
+      setMetadataError(null)
+      return
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetchMetadata(url)
+    }, 1000) // Wait 1 second after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [url, isValidUrl])
+
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value
     setUrl(newUrl)
@@ -40,33 +94,36 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
     }
   }
 
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`
+  }
+
   return (
-    <div className="card mb-8">
-      <div className="flex items-center mb-4">
-        <Link className="h-6 w-6 text-indigo-500 mr-3" />
-        <h2 className="text-xl font-semibold text-gray-900">
-          Add Audio URL
-        </h2>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
-            Paste URL from YouTube, Spotify, SoundCloud, or other platforms
-          </label>
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="flex flex-col md:flex-row gap-4 items-stretch">
+        <div className="flex-1">
           <input
             type="url"
             id="url"
             value={url}
             onChange={handleUrlChange}
-            placeholder="https://www.youtube.com/watch?v=..."
-            className={`input-field ${
-              url && !isValidUrl ? 'border-red-300 focus:ring-red-500' : ''
+            placeholder="Enter YouTube URL... https://www.youtube.com/watch?v=Mcm3CDt"
+            className={`w-full px-6 py-4 text-lg rounded-xl border-2 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 focus:outline-none focus:ring-4 transition-all duration-200 ${
+              url && !isValidUrl 
+                ? 'border-red-400 focus:border-red-400 focus:ring-red-400/20' 
+                : 'border-white/20 focus:border-purple-400 focus:ring-purple-400/20'
             }`}
             disabled={isLoading}
           />
           {url && !isValidUrl && (
-            <p className="mt-2 text-sm text-red-600">
+            <p className="mt-2 text-sm text-red-300">
               Please enter a valid URL from a supported platform
             </p>
           )}
@@ -75,47 +132,73 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
         <button
           type="submit"
           disabled={!isValidUrl || isLoading}
-          className={`w-full flex items-center justify-center space-x-2 ${
+          className={`px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-3 min-w-[200px] ${
             isValidUrl && !isLoading
-              ? 'btn-primary'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed py-3 px-6 rounded-lg'
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
               <span>Processing...</span>
             </>
           ) : (
             <>
-              <Upload className="h-5 w-5" />
-              <span>Start Transcription</span>
+              <Upload className="h-6 w-6" />
+              <span>Get Video Transcript</span>
             </>
           )}
         </button>
-      </form>
-      
-      <div className="mt-6 space-y-4">
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Supported Platforms:</h3>
-          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-            <div>• YouTube</div>
-            <div>• Spotify</div>
-            <div>• SoundCloud</div>
-            <div>• Vimeo</div>
-          </div>
-        </div>
-        
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">Large File Support:</h3>
-          <div className="space-y-1 text-sm text-blue-700">
-            <div>• ✅ Supports files of any size (no limit!)</div>
-            <div>• ✅ Automatic compression for moderately large files</div>
-            <div>• ✅ Smart chunking for very large files (&gt;75MB)</div>
-            <div>• ✅ Works with full-length podcasts, lectures, and meetings</div>
-          </div>
-        </div>
       </div>
-    </div>
+
+      {/* Metadata Preview */}
+      {(isLoadingMetadata || metadata || metadataError) && isValidUrl && (
+        <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
+          {isLoadingMetadata ? (
+            <div className="p-4 flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span className="text-white">Loading video information...</span>
+            </div>
+          ) : metadataError ? (
+            <div className="p-4 flex items-center space-x-3 text-yellow-300">
+              <Eye className="h-5 w-5" />
+              <span>{metadataError}</span>
+            </div>
+          ) : metadata ? (
+            <div className="p-4">
+              <div className="flex items-start space-x-4">
+                {metadata.thumbnail && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={metadata.thumbnail}
+                      alt="Video thumbnail"
+                      className="w-24 h-18 object-cover rounded-lg border border-white/20"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-white font-semibold text-lg leading-tight mb-2 line-clamp-2">
+                    {metadata.title}
+                  </h3>
+                  <div className="flex items-center space-x-4 text-sm text-gray-300">
+                    {metadata.duration && (
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{formatDuration(metadata.duration)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center space-x-1">
+                      <Play className="h-4 w-4" />
+                      <span>Ready to transcribe</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+    </form>
   )
 }

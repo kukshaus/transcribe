@@ -8,6 +8,8 @@ export interface Transcription {
   content?: string
   notes?: string
   prd?: string
+  userId?: string // Optional for anonymous users
+  userFingerprint?: string // For anonymous users
   createdAt: Date
   updatedAt: Date
   duration?: number
