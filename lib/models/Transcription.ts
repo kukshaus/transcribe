@@ -1,14 +1,18 @@
+import { ObjectId } from 'mongodb'
+
 export interface Transcription {
-  _id?: string
+  _id?: ObjectId | string
   url: string
   title?: string
   status: 'pending' | 'processing' | 'completed' | 'error'
   content?: string
   notes?: string
+  prd?: string
   createdAt: Date
   updatedAt: Date
   duration?: number
   error?: string
+  thumbnail?: string
   progress?: {
     currentStep: string
     stepNumber: number

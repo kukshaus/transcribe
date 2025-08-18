@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import UrlInput from '@/components/UrlInput'
 import TranscriptionCard from '@/components/TranscriptionCard'
 import SetupGuide from '@/components/SetupGuide'
+import { ToastContainer, useToast } from '@/components/Toast'
 import { Transcription } from '@/lib/models/Transcription'
 import { RefreshCw, AlertTriangle, HelpCircle } from 'lucide-react'
 
@@ -13,6 +14,7 @@ export default function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showSetupGuide, setShowSetupGuide] = useState(false)
   const [hasFFmpegError, setHasFFmpegError] = useState(false)
+  const { toasts, removeToast, success, error, warning } = useToast()
 
   // Fetch transcriptions on component mount
   useEffect(() => {
@@ -79,8 +81,11 @@ export default function Home() {
     }
   }
 
-  const handleDownload = async (id: string, type: 'transcription' | 'notes') => {
+  const handleDownload = async (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd') => {
     try {
+      const transcription = transcriptions.find(t => t._id?.toString() === id)
+      const title = transcription?.title || 'content'
+      
       const response = await fetch(`/api/download?id=${id}&type=${type}`)
       
       if (response.ok) {
@@ -101,13 +106,87 @@ export default function Home() {
         a.click()
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
+        
+        // Show success feedback
+        const typeNames = {
+          transcription: 'Transcription',
+          notes: 'Notes',
+          notion: 'Notion File',
+          prd: 'PRD'
+        }
+        
+        success(
+          'Downloaded!',
+          `${typeNames[type]} saved successfully.`
+        )
       } else {
-        const error = await response.json()
-        alert(`Download error: ${error.error}`)
+        const errorData = await response.json()
+        error('Download Failed', errorData.error || 'Could not download file.')
       }
-    } catch (error) {
-      console.error('Error downloading file:', error)
-      alert('Error downloading file. Please try again.')
+    } catch (downloadError) {
+      console.error('Error downloading file:', downloadError)
+      error(
+        'Download Error',
+        'Check your connection and try again.'
+      )
+    }
+  }
+
+  const handleGeneratePRD = async (transcriptionId: string) => {
+    try {
+      const transcription = transcriptions.find(t => t._id?.toString() === transcriptionId)
+      const title = transcription?.title || 'transcription'
+      
+      // Show immediate feedback that generation started
+      warning('Generating PRD...', `Creating requirements document for "${title}"`)
+      
+      const startTime = Date.now()
+      
+      const response = await fetch('/api/generate-prd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transcriptionId }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1)
+        
+        // Success feedback with toast
+        success(
+          'PRD Ready!',
+          `Requirements document created in ${duration}s. Check the Export menu to download.`
+        )
+        
+        // Refresh the transcriptions to show the new PRD
+        await fetchTranscriptions()
+      } else {
+        // More detailed error messages
+        let errorTitle = 'PRD Generation Failed'
+        let errorMessage = result.error || 'Unknown error occurred'
+        
+        if (errorMessage.includes('quota')) {
+          errorTitle = 'Quota Exceeded'
+          errorMessage = 'OpenAI API quota limit reached. Try again later.'
+        } else if (errorMessage.includes('API key')) {
+          errorTitle = 'API Key Error'
+          errorMessage = 'Check your OpenAI API key configuration.'
+        } else if (errorMessage.includes('notes')) {
+          errorTitle = 'Notes Required'
+          errorMessage = 'Generate notes first before creating a PRD.'
+        }
+        
+        error(errorTitle, errorMessage)
+      }
+    } catch (networkError) {
+      console.error('Error generating PRD:', networkError)
+      error(
+        'Connection Error',
+        'Please check your internet connection and try again.'
+      )
     }
   }
 
@@ -187,9 +266,10 @@ export default function Home() {
         <div className="space-y-6">
           {transcriptions.map((transcription) => (
             <TranscriptionCard
-              key={transcription._id}
+              key={transcription._id?.toString()}
               transcription={transcription}
               onDownload={handleDownload}
+              onGeneratePRD={handleGeneratePRD}
             />
           ))}
         </div>
@@ -199,6 +279,9 @@ export default function Home() {
       {showSetupGuide && (
         <SetupGuide onClose={() => setShowSetupGuide(false)} />
       )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </main>
   )
 }

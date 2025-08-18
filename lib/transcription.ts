@@ -14,17 +14,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-export async function getVideoMetadata(url: string): Promise<{ title?: string, duration?: number }> {
+export async function getVideoMetadata(url: string): Promise<{ title?: string, duration?: number, thumbnail?: string }> {
   try {
-    // Get video metadata using yt-dlp
-    const command = `yt-dlp --print title --print duration "${url}"`
+    // Get video metadata using yt-dlp including thumbnail
+    const command = `yt-dlp --print title --print duration --print thumbnail "${url}"`
     const { stdout } = await execAsync(command, { timeout: 30000 })
     
     const lines = stdout.trim().split('\n')
     const title = lines[0] || undefined
     const duration = lines[1] ? parseFloat(lines[1]) : undefined
+    const thumbnail = lines[2] || undefined
     
-    return { title, duration }
+    return { title, duration, thumbnail }
   } catch (error) {
     console.warn('Could not get video metadata:', error)
     return {}
@@ -329,15 +330,31 @@ export async function generateNotes(transcription: string): Promise<string> {
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that creates concise, well-structured notes from transcriptions. Format the notes with clear headings, bullet points, and key takeaways.'
+          content: `You are an expert note-taker that creates comprehensive video/audio summaries. Your notes should be:
+
+1. **Well-structured** with clear sections and headings
+2. **Comprehensive** - capture the full essence of the content
+3. **Actionable** - highlight key takeaways, insights, and important points
+4. **Easy to scan** - use bullet points, numbered lists, and formatting
+
+Format your response with:
+- **Executive Summary** (2-3 sentences overview)
+- **Key Points** (main topics/arguments presented)
+- **Important Details** (specific facts, numbers, examples)
+- **Action Items/Takeaways** (what viewers should remember or do)
+- **Notable Quotes** (if any particularly impactful statements)
+
+Use markdown formatting for better readability.`
         },
         {
           role: 'user',
-          content: `Please create structured notes from this transcription:\n\n${transcription}`
+          content: `Please create comprehensive structured notes from this video/audio transcription. Focus on the main content, key insights, and important takeaways:
+
+${transcription}`
         }
       ],
-      max_tokens: 2000,
-      temperature: 0.3,
+      max_tokens: 3000,
+      temperature: 0.2,
     })
 
     return completion.choices[0]?.message?.content || 'No notes generated'

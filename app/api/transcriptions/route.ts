@@ -105,14 +105,15 @@ async function processTranscription(transcriptionId: string, url: string) {
     const metadata = await getVideoMetadata(url)
     console.log(`Video metadata:`, metadata)
     
-    // Update with title and duration if available
-    if (metadata.title || metadata.duration) {
+    // Update with title, duration, and thumbnail if available
+    if (metadata.title || metadata.duration || metadata.thumbnail) {
       await transcriptionsCollection.updateOne(
         { _id: new ObjectId(transcriptionId) },
         {
           $set: {
             title: metadata.title,
             duration: metadata.duration,
+            thumbnail: metadata.thumbnail,
             updatedAt: new Date()
           }
         }

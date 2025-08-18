@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
-    const type = searchParams.get('type') as 'transcription' | 'notes'
+    const type = searchParams.get('type') as 'transcription' | 'notes' | 'notion' | 'prd'
 
     if (!id || !type) {
       return NextResponse.json({ error: 'ID and type are required' }, { status: 400 })
@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid transcription ID' }, { status: 400 })
     }
 
-    if (!['transcription', 'notes'].includes(type)) {
-      return NextResponse.json({ error: 'Type must be transcription or notes' }, { status: 400 })
+    if (!['transcription', 'notes', 'notion', 'prd'].includes(type)) {
+      return NextResponse.json({ error: 'Type must be transcription, notes, notion, or prd' }, { status: 400 })
     }
 
     const db = await getDatabase()
@@ -36,7 +36,47 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Transcription not completed yet' }, { status: 400 })
     }
 
-    const content = type === 'transcription' ? transcription.content : transcription.notes
+    let content: string = ''
+    let fileExtension = 'txt'
+    
+    if (type === 'transcription') {
+      content = transcription.content || ''
+    } else if (type === 'notes') {
+      content = transcription.notes || ''
+    } else if (type === 'notion') {
+      // Format notes for Notion import
+      if (!transcription.notes) {
+        return NextResponse.json({ error: 'Notes not available' }, { status: 404 })
+      }
+      
+      // Create Notion-optimized markdown
+      const title = transcription.title || 'Transcription Notes'
+      const sourceUrl = transcription.url
+      const createdDate = new Date(transcription.createdAt).toLocaleDateString()
+      
+      content = `# ${title}
+
+**Source:** [${sourceUrl}](${sourceUrl})
+**Created:** ${createdDate}
+
+---
+
+${transcription.notes}
+
+---
+
+*Exported from Audio Transcriber on ${new Date().toLocaleDateString()}*`
+      
+      fileExtension = 'md'
+    } else if (type === 'prd') {
+      // Download PRD if it exists
+      if (!transcription.prd) {
+        return NextResponse.json({ error: 'PRD not available. Please generate a PRD first.' }, { status: 404 })
+      }
+      
+      content = transcription.prd
+      fileExtension = 'md'
+    }
 
     if (!content) {
       return NextResponse.json({ error: `${type} not available` }, { status: 404 })
@@ -58,11 +98,11 @@ export async function GET(request: NextRequest) {
     }
     
     const timestamp = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
-    const filename = `${baseFilename}_${type}_${timestamp}.txt`
+    const filename = `${baseFilename}_${type}_${timestamp}.${fileExtension}`
 
     // Create response with file download
     const response = new NextResponse(content)
-    response.headers.set('Content-Type', 'text/plain')
+    response.headers.set('Content-Type', fileExtension === 'md' ? 'text/markdown' : 'text/plain')
     response.headers.set('Content-Disposition', `attachment; filename="${filename}"`)
     
     return response

@@ -111,7 +111,7 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
           <div className="space-y-1 text-sm text-blue-700">
             <div>• ✅ Supports files of any size (no limit!)</div>
             <div>• ✅ Automatic compression for moderately large files</div>
-            <div>• ✅ Smart chunking for very large files (>75MB)</div>
+            <div>• ✅ Smart chunking for very large files (&gt;75MB)</div>
             <div>• ✅ Works with full-length podcasts, lectures, and meetings</div>
           </div>
         </div>
