@@ -2,7 +2,7 @@
 NODE_VERSION = "18"
 
 [phases.setup]
-nixPkgs = ["nodejs", "python3", "pip", "ffmpeg", "yt-dlp"]
+nixPkgs = ["nodejs", "python3", "ffmpeg", "yt-dlp"]
 
 [phases.install]
 cmds = ["npm ci"]
