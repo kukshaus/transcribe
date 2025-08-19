@@ -3,24 +3,65 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { loadStripe } from '@stripe/stripe-js'
 import { TOKEN_PACKAGES } from '@/lib/stripe'
-import { CheckCircle, Star, ArrowLeft } from 'lucide-react'
+import { CheckCircle, Star, ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Header from '@/components/Header'
 
-export default function PricingPage() {
-  const { data: session } = useSession()
-  const router = useRouter()
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null
 
-  const handleGetStarted = (packageId: string) => {
+export default function PricingPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const handleGetStarted = async (packageId: string) => {
     if (!session) {
-      // Redirect to sign in with a callback to the purchase page
-      router.push(`/auth/signin?callbackUrl=${encodeURIComponent('/payment/buy-tokens')}`)
+      // Redirect to sign in with a callback to the pricing page
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`)
       return
     }
-    
-    // If already signed in, go directly to purchase page
-    router.push('/payment/buy-tokens')
+
+    if (!stripePromise) {
+      alert('Payment system is not configured. Please contact support.')
+      return
+    }
+
+    setLoading(packageId)
+
+    try {
+      // Create checkout session
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ packageId }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session')
+      }
+
+      const { sessionId } = await response.json()
+      
+      // Redirect to Stripe Checkout
+      const stripe = await stripePromise
+      if (stripe) {
+        const { error } = await stripe.redirectToCheckout({ sessionId })
+        if (error) {
+          console.error('Stripe redirect error:', error)
+        }
+      }
+    } catch (error) {
+      console.error('Purchase error:', error)
+      alert('Failed to start checkout. Please try again.')
+    } finally {
+      setLoading(null)
+    }
   }
 
   return (
@@ -110,13 +151,23 @@ export default function PricingPage() {
 
                 <button
                   onClick={() => handleGetStarted(pkg.id)}
-                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${
+                  disabled={loading === pkg.id}
+                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     pkg.popular
                       ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:from-yellow-500 hover:to-orange-600'
                       : 'bg-purple-600 text-white hover:bg-purple-700'
                   }`}
                 >
-                  {session ? 'Purchase Now' : 'Get Started'}
+                  {loading === pkg.id ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Processing...
+                    </div>
+                  ) : session ? (
+                    'Purchase Now'
+                  ) : (
+                    'Get Started'
+                  )}
                 </button>
               </div>
             ))}
