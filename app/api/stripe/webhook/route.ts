@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         )
       } catch (error) {
         // If there's a duplicate key error, it means another webhook already processed this
-        if (error.code === 11000) {
+        if (error && typeof error === 'object' && 'code' in error && (error as any).code === 11000) {
           console.log(`Duplicate webhook detected for session ${session.id}, already processed`)
           return NextResponse.json({ received: true, message: 'Already processed' })
         }
