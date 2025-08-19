@@ -45,6 +45,11 @@ export default function Footer() {
                   Pricing
                 </a>
               </li>
+              <li>
+                <a href="mailto:transcribe@snapcoder.io" className="hover:text-white transition-colors duration-200">
+                  Support
+                </a>
+              </li>
             </ul>
           </div>
 

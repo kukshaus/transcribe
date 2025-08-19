@@ -1,6 +1,8 @@
 'use client'
 
 import Header from '@/components/Header'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default function TermsOfService() {
   return (
@@ -9,6 +11,14 @@ export default function TermsOfService() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 pt-20">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/20">
+            <Link 
+              href="/"
+              className="inline-flex items-center text-purple-300 hover:text-white mb-8 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Link>
+            
             <h1 className="text-4xl font-bold text-white mb-8">Terms of Service</h1>
             <div className="text-gray-300 space-y-6 leading-relaxed">
               <p className="text-sm text-gray-400">Last Updated: August 19, 2025</p>
@@ -99,7 +109,7 @@ export default function TermsOfService() {
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">13. Contact Information</h2>
                 <p>For any questions or concerns regarding these Terms of Service, please contact us at:</p>
-                <p className="ml-4">Email: support@transcribeai.com</p>
+                <p className="ml-4">Email: transcribe@snapcoder.io</p>
               </section>
 
               <p className="text-center text-gray-400 mt-12">Thank you for using TranscribeAI!</p>
