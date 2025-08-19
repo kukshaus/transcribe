@@ -16,11 +16,7 @@ export default function Footer() {
               Transform audio content from any platform into searchable text and organized notes. 
               Free, fast, and no signup required.
             </p>
-            <div className="flex items-center gap-2 text-green-400 text-sm mt-4">
-              <CheckCircle className="h-4 w-4" />
-              <span>All systems operational</span>
-            </div>
-            <div className="flex items-center space-x-4 mt-4">
+            <div className="flex items-center justify-between mt-6">
               <a
                 href="https://github.com/kukshaus/transcribe"
                 target="_blank"
@@ -29,6 +25,10 @@ export default function Footer() {
               >
                 <Github className="h-5 w-5" />
               </a>
+              <div className="flex items-center gap-2 text-green-400 text-sm">
+                <CheckCircle className="h-4 w-4" />
+                <span>All systems operational</span>
+              </div>
             </div>
           </div>
 
