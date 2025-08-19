@@ -25,8 +25,9 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
   const validateUrl = (inputUrl: string) => {
     try {
       const urlObj = new URL(inputUrl)
-      const validDomains = ['youtube.com', 'youtu.be', 'spotify.com', 'soundcloud.com', 'vimeo.com']
-      const isValid = validDomains.some(domain => 
+      // Currently supported: YouTube, SoundCloud
+      const supportedDomains = ['youtube.com', 'youtu.be', 'soundcloud.com']
+      const isValid = supportedDomains.some(domain => 
         urlObj.hostname.includes(domain) || urlObj.hostname.includes('www.' + domain)
       )
       setIsValidUrl(isValid)
@@ -114,7 +115,7 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
             id="url"
             value={url}
             onChange={handleUrlChange}
-            placeholder="Enter YouTube URL... https://www.youtube.com/watch?v=Mcm3CDt"
+            placeholder="Enter video URL (YouTube, SoundCloud)..."
             className={`w-full px-6 py-4 text-lg rounded-xl border-2 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 focus:outline-none focus:ring-4 transition-all duration-200 ${
               url && !isValidUrl 
                 ? 'border-red-400 focus:border-red-400 focus:ring-red-400/20' 
@@ -124,7 +125,7 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
           />
           {url && !isValidUrl && (
             <p className="mt-2 text-sm text-red-300">
-              Please enter a valid URL from a supported platform
+              Please enter a valid URL from YouTube or SoundCloud.
             </p>
           )}
         </div>

@@ -815,10 +815,10 @@ export default function TranscriptionDetailPage() {
                               You need at least 1 token to generate AI notes for this transcription.
                             </p>
                             <button
-                              onClick={() => router.push('/payment/buy-tokens')}
+                              onClick={() => router.push('/pricing')}
                               className="inline-flex items-center space-x-2 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm"
                             >
-                              <span>Buy Tokens</span>
+                              <span>View Pricing</span>
                             </button>
                           </div>
                         )}

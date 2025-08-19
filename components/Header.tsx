@@ -21,8 +21,14 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Authentication UI */}
+          {/* Navigation and Authentication UI */}
           <div className="flex items-center space-x-4">
+            <Link
+              href="/pricing"
+              className="text-white/80 hover:text-white transition-colors font-medium"
+            >
+              Pricing
+            </Link>
             {status === 'loading' ? (
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
             ) : session ? (

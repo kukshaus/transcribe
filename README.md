@@ -1,12 +1,12 @@
 # Audio Transcriber
 
-A modern web application that transcribes audio content from YouTube, Spotify, and other platforms using AI, and generates structured notes from the transcriptions.
+A modern web application that transcribes audio content from YouTube, SoundCloud, and other platforms using AI, and generates structured notes from the transcriptions.
 
 🔗 **Repository**: [https://github.com/kukshaus/transcribe.git](https://github.com/kukshaus/transcribe.git)
 
 ## Features
 
-- 🎵 **Multi-platform Support**: YouTube, Spotify, SoundCloud, Vimeo, and more
+- 🎵 **Multi-platform Support**: YouTube, SoundCloud, and more
 - 🤖 **AI Transcription**: Powered by OpenAI Whisper for accurate speech-to-text
 - 📝 **Smart Notes**: AI-generated structured notes from transcriptions
 - 💾 **Download Options**: Export transcriptions and notes as text files
@@ -95,7 +95,7 @@ pip install yt-dlp
 
 ## Usage
 
-1. **Paste a URL**: Enter a URL from YouTube, Spotify, or other supported platforms
+1. **Paste a URL**: Enter a URL from YouTube, SoundCloud, or other supported platforms
 2. **Start Transcription**: Click "Start Transcription" to begin processing
 3. **Monitor Progress**: Watch real-time status updates (Pending → Processing → Completed)
 4. **View Results**: Switch between transcription and AI-generated notes
@@ -105,11 +105,10 @@ pip install yt-dlp
 
 ## Supported Platforms
 
-- YouTube (youtube.com, youtu.be)
-- Spotify (spotify.com)
-- SoundCloud (soundcloud.com)
-- Vimeo (vimeo.com)
-- Any platform supported by yt-dlp
+- ✅ **YouTube** (youtube.com, youtu.be) - Fully supported
+- ✅ **SoundCloud** (soundcloud.com) - Supported
+- ✅ **Vimeo** (vimeo.com) - Supported
+- 🔄 **Other platforms** - May work if supported by yt-dlp
 
 ## API Endpoints
 

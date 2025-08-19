@@ -13,7 +13,7 @@ export default withAuth(
         }
         
         // Allow access to public pages without token
-        if (req.nextUrl.pathname === '/') {
+        if (req.nextUrl.pathname === '/' || req.nextUrl.pathname === '/pricing') {
           return true
         }
         

@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 
 const sources = [
   { text: 'YouTube', color: 'from-red-400 to-red-600' },
-  { text: 'Spotify', color: 'from-green-400 to-green-600' }, 
   { text: 'SoundCloud', color: 'from-orange-400 to-orange-500' },
-  { text: 'Audio', color: 'from-blue-400 to-blue-600' }
+  { text: 'Audio', color: 'from-blue-400 to-blue-600' },
+  { text: 'Podcasts', color: 'from-purple-400 to-purple-600' }
 ]
 
 export default function RotatingText() {

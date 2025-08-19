@@ -58,13 +58,30 @@ async function ensureYtDlpUpdated(): Promise<void> {
   }
 }
 
+function detectPlatform(url: string): string {
+  try {
+    const urlObj = new URL(url)
+    const hostname = urlObj.hostname.toLowerCase().replace('www.', '')
+    
+    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+      return 'youtube'
+    } else if (hostname.includes('soundcloud.com')) {
+      return 'soundcloud'
+    }
+    return 'unknown'
+  } catch {
+    return 'unknown'
+  }
+}
+
 export async function downloadAudio(url: string): Promise<string> {
   const outputDir = path.join(process.cwd(), 'temp')
   const filename = `audio_${Date.now()}`
   const isWindows = process.platform === 'win32'
+  const platform = detectPlatform(url)
 
   try {
-    // Ensure yt-dlp is updated for better YouTube compatibility
+    // Ensure yt-dlp is updated for better platform compatibility
     await ensureYtDlpUpdated()
     
     // Create temp directory if it doesn't exist
@@ -145,15 +162,26 @@ export async function downloadAudio(url: string): Promise<string> {
     } catch (error) {
       const errorMessage = error.message || error.toString()
       
-      // Provide more specific error messages for common YouTube issues
-      if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
-        throw new Error(`YouTube access restricted. The video may be private, geo-blocked, or have download restrictions. Try a different video.`)
-      } else if (errorMessage.includes('Requested format is not available')) {
-        throw new Error(`Video format not available for download. This video may have restricted access or be a live stream.`)
-      } else if (errorMessage.includes('fragment not found')) {
-        throw new Error(`Video download interrupted. This may be due to network issues or YouTube restrictions.`)
+      // Platform-specific error messages
+      if (platform === 'youtube' || errorMessage.includes('youtube')) {
+        if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+          throw new Error(`YouTube access restricted. The video may be private, geo-blocked, or have download restrictions. Try a different video.`)
+        } else if (errorMessage.includes('Requested format is not available')) {
+          throw new Error(`YouTube video format not available for download. This video may have restricted access or be a live stream.`)
+        } else if (errorMessage.includes('fragment not found')) {
+          throw new Error(`YouTube video download interrupted. This may be due to network issues or YouTube restrictions.`)
+        } else {
+          throw new Error(`YouTube audio download failed: ${errorMessage}`)
+        }
+      } else if (platform === 'soundcloud') {
+        throw new Error(`SoundCloud audio download failed. This track may be private or have download restrictions: ${errorMessage}`)
       } else {
-        throw new Error(`Audio download failed: ${errorMessage}`)
+        // Generic error for unknown platforms
+        if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+          throw new Error(`Access restricted. The content may be private, geo-blocked, or have download restrictions. Try a different URL.`)
+        } else {
+          throw new Error(`Audio download failed: ${errorMessage}`)
+        }
       }
     }
   } catch (error) {

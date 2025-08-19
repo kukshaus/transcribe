@@ -109,7 +109,7 @@ export default function SetupGuide({ onClose }: SetupGuideProps) {
               Setup Complete!
             </h3>
             <p className="text-gray-600">
-              You can now transcribe audio from YouTube, Spotify, and other platforms.
+              You can now transcribe audio from YouTube, SoundCloud, Vimeo, and other platforms.
             </p>
           </div>
           
@@ -117,7 +117,7 @@ export default function SetupGuide({ onClose }: SetupGuideProps) {
             <h4 className="font-medium text-gray-900 mb-2">Supported Platforms:</h4>
             <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
               <div>• YouTube</div>
-              <div>• Spotify</div>
+
               <div>• SoundCloud</div>
               <div>• Vimeo</div>
               <div>• And many more...</div>

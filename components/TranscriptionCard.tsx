@@ -65,6 +65,43 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
     }
   }
 
+  const detectPlatform = (url: string): { name: string; icon: JSX.Element; bgColor: string; textColor: string } => {
+    try {
+      const urlObj = new URL(url)
+      const hostname = urlObj.hostname.toLowerCase().replace('www.', '')
+      
+      if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+        return { 
+          name: 'YouTube', 
+          icon: <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>,
+          bgColor: 'bg-red-50', 
+          textColor: 'text-red-700' 
+        }
+      } else if (hostname.includes('soundcloud.com')) {
+        return { 
+          name: 'SoundCloud', 
+          icon: <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M1.175 0C.526 0 0 .526 0 1.175v21.65C0 23.474.526 24 1.175 24h21.65c.649 0 1.175-.526 1.175-1.175V1.175C24 .526 23.474 0 22.825 0H1.175zm19.95 13.462c-1.577 4.99-5.431 8.674-10.287 9.546-.711.128-1.428.2-2.163.2-.735 0-1.452-.072-2.163-.2-4.856-.872-8.71-4.556-10.287-9.546-.128-.407-.128-.844 0-1.251C2.802 7.22 6.656 3.536 11.512 2.664c.711-.128 1.428-.2 2.163-.2.735 0 1.452.072 2.163.2 4.856.872 8.71 4.556 10.287 9.546.128.407.128.844 0 1.251z"/></svg>,
+          bgColor: 'bg-orange-50', 
+          textColor: 'text-orange-700' 
+        }
+      } else {
+        return { 
+          name: 'Audio', 
+          icon: <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>,
+          bgColor: 'bg-blue-50', 
+          textColor: 'text-blue-700' 
+        }
+      }
+    } catch {
+      return { 
+        name: 'Audio', 
+        icon: <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>,
+        bgColor: 'bg-blue-50', 
+        textColor: 'text-blue-700' 
+      }
+    }
+  }
+
   const handleGeneratePRD = async () => {
     if (!onGeneratePRD) return
     
@@ -124,6 +161,13 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                   {transcription.status.charAt(0).toUpperCase() + transcription.status.slice(1)}
                 </span>
               </div>
+              
+              {/* Platform Badge */}
+              <div className={`inline-flex items-center space-x-1.5 px-2 py-1 rounded-md text-xs font-medium border ${detectPlatform(transcription.url).bgColor} ${detectPlatform(transcription.url).textColor} border-current border-opacity-20`}>
+                {detectPlatform(transcription.url).icon}
+                <span>{detectPlatform(transcription.url).name}</span>
+              </div>
+              
               {transcription.duration && (
                 <span className="text-sm text-gray-500">
                   Duration: {formatDuration(transcription.duration)}
@@ -356,11 +400,11 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        window.location.href = '/payment/buy-tokens'
+                        window.location.href = '/pricing'
                       }}
                       className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
                     >
-                      Buy Tokens
+                      View Pricing
                     </button>
                   </div>
                 ) : (

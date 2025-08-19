@@ -41,7 +41,7 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">LINKS</h3>
             <ul className="space-y-3 text-gray-300 text-sm">
               <li>
-                <a href="/payment/buy-tokens" className="hover:text-white transition-colors duration-200">
+                <a href="/pricing" className="hover:text-white transition-colors duration-200">
                   Pricing
                 </a>
               </li>
