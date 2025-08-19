@@ -7,9 +7,9 @@ export default function Footer() {
   return (
     <footer className="bg-black/20 backdrop-blur-md border-t border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Logo and Description */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2 lg:col-span-2">
             <Logo size="sm" variant="light" showText={true} />
             <p className="mt-4 text-gray-300 max-w-md">
               Transform audio content from any platform into searchable text and organized notes. 
@@ -34,35 +34,32 @@ export default function Footer() {
               </a>
             </div>
           </div>
-          
-          {/* Resources */}
+
+          {/* Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Resources</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li>
-                <a href="#how-it-works" className="hover:text-white transition-colors duration-200">
-                  How it Works
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-white transition-colors duration-200">
-                  Features
-                </a>
-              </li>
+            <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">LINKS</h3>
+            <ul className="space-y-3 text-gray-300 text-sm">
               <li>
                 <a href="/payment/buy-tokens" className="hover:text-white transition-colors duration-200">
                   Pricing
                 </a>
               </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">LEGAL</h3>
+            <ul className="space-y-3 text-gray-300 text-sm">
               <li>
-                <a href="https://github.com/yourusername/transcriber" className="hover:text-white transition-colors duration-200">
-                  GitHub
+                <a href="/terms" className="hover:text-white transition-colors duration-200">
+                  Terms of Service
                 </a>
               </li>
               <li>
-                <button className="hover:text-white transition-colors duration-200 text-left">
-                  Setup Guide
-                </button>
+                <a href="/privacy" className="hover:text-white transition-colors duration-200">
+                  Privacy Policy
+                </a>
               </li>
             </ul>
           </div>
