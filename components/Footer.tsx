@@ -1,7 +1,7 @@
 'use client'
 
 import Logo from './Logo'
-import { Github, Twitter, Heart, CheckCircle } from 'lucide-react'
+import { Github, Heart, CheckCircle } from 'lucide-react'
 import { getVersionString } from '@/lib/version'
 
 export default function Footer() {
@@ -18,20 +18,12 @@ export default function Footer() {
             </p>
             <div className="flex items-center space-x-4 mt-6">
               <a
-                href="https://github.com/yourusername/transcriber"
+                href="https://github.com/kukshaus/transcribe"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors duration-200"
               >
                 <Github className="h-5 w-5" />
-              </a>
-              <a
-                href="https://twitter.com/yourusername"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors duration-200"
-              >
-                <Twitter className="h-5 w-5" />
               </a>
             </div>
           </div>
