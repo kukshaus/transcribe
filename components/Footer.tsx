@@ -2,6 +2,7 @@
 
 import Logo from './Logo'
 import { Github, Twitter, Heart } from 'lucide-react'
+import { getVersionString } from '@/lib/version'
 
 export default function Footer() {
   return (
@@ -67,9 +68,14 @@ export default function Footer() {
         
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-gray-400 text-sm">
-            © 2025 TranscribeAI. All rights reserved.
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+            <p className="text-gray-400 text-sm">
+              © 2025 TranscribeAI. All rights reserved.
+            </p>
+            <span className="text-gray-500 text-xs bg-gray-800 px-2 py-1 rounded">
+              v{getVersionString()}
+            </span>
+          </div>
           <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
             <span>Made with</span>
             <Heart className="h-4 w-4 text-red-400" />

@@ -11,7 +11,12 @@
     "setup": "cross-env YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install && npm run type-check",
     "postinstall": "echo YouTube DL setup complete",
     "db:cleanup": "node scripts/cleanup-database.js",
-    "db:cleanup:confirm": "node scripts/cleanup-database.js --confirm"
+    "db:cleanup:confirm": "node scripts/cleanup-database.js --confirm",
+    "version:patch": "npm version patch --no-git-tag-version && npm run version:update",
+    "version:minor": "npm version minor --no-git-tag-version && npm run version:update",
+    "version:major": "npm version major --no-git-tag-version && npm run version:update",
+    "version:update": "node scripts/update-version.js",
+    "version:show": "node -e \"console.log('App Version:', require('./lib/version.ts').getVersionString())\""
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
