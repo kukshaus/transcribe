@@ -9,7 +9,9 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "setup": "cross-env YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install && npm run type-check",
-    "postinstall": "echo YouTube DL setup complete"
+    "postinstall": "echo YouTube DL setup complete",
+    "db:cleanup": "node scripts/cleanup-database.js",
+    "db:cleanup:confirm": "node scripts/cleanup-database.js --confirm"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",

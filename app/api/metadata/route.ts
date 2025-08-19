@@ -23,6 +23,10 @@ export async function POST(request: NextRequest) {
         thumbnail: metadata.thumbnail || null,
         url: url
       }
+    }, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      }
     })
 
   } catch (error: any) {

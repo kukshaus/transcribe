@@ -16,19 +16,45 @@ const openai = new OpenAI({
 
 export async function getVideoMetadata(url: string): Promise<{ title?: string, duration?: number, thumbnail?: string }> {
   try {
-    // Get video metadata using yt-dlp including thumbnail
-    const command = `yt-dlp --print title --print duration --print thumbnail "${url}"`
-    const { stdout } = await execAsync(command, { timeout: 30000 })
+    // Get video metadata using yt-dlp including thumbnail with proper encoding
+    const command = `yt-dlp --encoding utf-8 --print title --print duration --print thumbnail "${url}"`
+    const { stdout } = await execAsync(command, { 
+      timeout: 30000,
+      encoding: 'utf8'  // Ensure UTF-8 encoding for proper character handling
+    })
     
     const lines = stdout.trim().split('\n')
-    const title = lines[0] || undefined
+    let title = lines[0] || undefined
     const duration = lines[1] ? parseFloat(lines[1]) : undefined
     const thumbnail = lines[2] || undefined
+    
+    // Additional cleanup for title to ensure proper UTF-8 handling
+    if (title) {
+      // Remove any null bytes or control characters that might cause encoding issues
+      title = title.replace(/\0/g, '').replace(/[\x00-\x1F\x7F]/g, '').trim()
+      
+      // Ensure title is not empty after cleanup
+      if (!title) {
+        title = undefined
+      }
+    }
     
     return { title, duration, thumbnail }
   } catch (error) {
     console.warn('Could not get video metadata:', error)
     return {}
+  }
+}
+
+async function ensureYtDlpUpdated(): Promise<void> {
+  try {
+    console.log('Checking yt-dlp version...')
+    // Try to update yt-dlp to latest version to handle YouTube changes
+    await execAsync('yt-dlp --update', { timeout: 30000 })
+    console.log('yt-dlp updated successfully')
+  } catch (error) {
+    console.log('yt-dlp update failed or not needed:', error.message || error)
+    // Continue anyway - maybe it's already up to date or update is not available
   }
 }
 
@@ -38,46 +64,101 @@ export async function downloadAudio(url: string): Promise<string> {
   const isWindows = process.platform === 'win32'
 
   try {
+    // Ensure yt-dlp is updated for better YouTube compatibility
+    await ensureYtDlpUpdated()
+    
     // Create temp directory if it doesn't exist
     const mkdirCommand = isWindows ? `if not exist "${outputDir}" mkdir "${outputDir}"` : `mkdir -p "${outputDir}"`
-    await execAsync(mkdirCommand)
+    await execAsync(mkdirCommand, { encoding: 'utf8' })
     
     // Download with optimized settings for Whisper API (25MB limit)
     // Use lower quality and shorter duration to stay under the limit
     const optimizedOutputPath = path.join(outputDir, `${filename}.mp3`)
     
     try {
-      // First try: Download with audio compression for Whisper API
-      let command = `yt-dlp -x --audio-format mp3 --audio-quality 5 --postprocessor-args "-ac 1 -ar 16000" --output "${optimizedOutputPath}" "${url}"`
+      // Strategy 1: Try MP3 conversion with enhanced format selection  
+      const userAgent = '--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" --referer "https://www.youtube.com/"'
+      let command = `yt-dlp --encoding utf-8 -x --audio-format mp3 --audio-quality 5 --postprocessor-args "-ac 1 -ar 16000" --format "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio" ${userAgent} --output "${optimizedOutputPath}" "${url}"`
       
       try {
-        await execAsync(command, { timeout: 300000 }) // 5 minute timeout
+        await execAsync(command, { 
+          timeout: 300000, // 5 minute timeout
+          encoding: 'utf8'  // Ensure UTF-8 encoding
+        })
+        console.log(`MP3 conversion successful: ${optimizedOutputPath}`)
         return optimizedOutputPath
       } catch (ffmpegError) {
-        console.log('FFmpeg compression failed, trying direct download...')
+        console.log('FFmpeg compression failed, trying direct download with multiple fallbacks...')
         
-        // Fallback: Direct download without conversion
+        // Strategy 2: Multiple format fallbacks
         const directOutputPath = path.join(outputDir, `${filename}.%(ext)s`)
-        command = `yt-dlp --format "bestaudio[filesize<?25M]/bestaudio" --output "${directOutputPath}" "${url}"`
+        const formatOptions = [
+          "bestaudio[filesize<?25M][ext=webm]/bestaudio[ext=webm]",
+          "bestaudio[filesize<?25M][ext=m4a]/bestaudio[ext=m4a]", 
+          "bestaudio[filesize<?25M]/bestaudio",
+          "best[filesize<?25M]/best"
+        ]
         
-        await execAsync(command, { timeout: 300000 })
+        // Add user agent and other options to bypass YouTube restrictions
+        const extraOptions = '--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" --referer "https://www.youtube.com/"'
         
-        // Find the downloaded file
-        const listCommand = isWindows ? `dir /b "${outputDir}"` : `ls "${outputDir}"`
-        const { stdout } = await execAsync(listCommand)
-        const files = stdout.trim().split('\n').filter(file => file.includes(filename.toString()))
-        
-        if (files.length === 0) {
-          throw new Error('Downloaded file not found')
+        let lastError: any
+        for (let i = 0; i < formatOptions.length; i++) {
+          const format = formatOptions[i]
+          command = `yt-dlp --encoding utf-8 --format "${format}" ${extraOptions} --output "${directOutputPath}" "${url}"`
+          console.log(`Trying download format ${i + 1}/${formatOptions.length}: ${format}`)
+          
+          try {
+            await execAsync(command, { 
+              timeout: 300000,
+              encoding: 'utf8'
+            })
+            break // Success, exit the loop
+          } catch (error) {
+            console.log(`Format ${i + 1} failed:`, error.message || error)
+            lastError = error
+            if (i === formatOptions.length - 1) {
+              throw lastError // If all formats failed, throw the last error
+            }
+          }
         }
         
-        return path.join(outputDir, files[0])
+        // Find the downloaded file
+        console.log(`Searching for downloaded file with pattern: ${filename}`)
+        const listCommand = isWindows ? `dir /b "${outputDir}"` : `ls "${outputDir}"`
+        const { stdout } = await execAsync(listCommand, { encoding: 'utf8' })
+        // Clean up Windows line endings and filter empty entries
+        const allFiles = stdout.trim().split('\n').map(file => file.replace(/\r/g, '').trim()).filter(file => file.length > 0)
+        console.log(`All files in temp directory:`, allFiles)
+        
+        const files = allFiles.filter(file => file.includes(filename.toString()))
+        console.log(`Matching files found:`, files)
+        
+        if (files.length === 0) {
+          throw new Error(`Downloaded file not found. Expected pattern: ${filename}, Available files: ${allFiles.join(', ')}`)
+        }
+        
+        const selectedFile = path.join(outputDir, files[0])
+        console.log(`Direct download successful: ${selectedFile}`)
+        return selectedFile
       }
     } catch (error) {
-      throw new Error(`Audio download failed: ${error}`)
+      const errorMessage = error.message || error.toString()
+      
+      // Provide more specific error messages for common YouTube issues
+      if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+        throw new Error(`YouTube access restricted. The video may be private, geo-blocked, or have download restrictions. Try a different video.`)
+      } else if (errorMessage.includes('Requested format is not available')) {
+        throw new Error(`Video format not available for download. This video may have restricted access or be a live stream.`)
+      } else if (errorMessage.includes('fragment not found')) {
+        throw new Error(`Video download interrupted. This may be due to network issues or YouTube restrictions.`)
+      } else {
+        throw new Error(`Audio download failed: ${errorMessage}`)
+      }
     }
   } catch (error) {
-    throw new Error(`Failed to download audio: ${error}`)
+    const errorMessage = error.message || error.toString()
+    throw new Error(`Failed to download audio: ${errorMessage}`)
   }
 }
 
@@ -104,7 +185,10 @@ async function compressAudio(inputPath: string): Promise<string> {
   try {
     // Compress audio to reduce file size: mono, 16kHz, low bitrate
     const command = `ffmpeg -i "${inputPath}" -ac 1 -ar 16000 -ab 64k -y "${compressedPath}"`
-    await execAsync(command, { timeout: 180000 }) // 3 minute timeout
+    await execAsync(command, { 
+      timeout: 180000, // 3 minute timeout
+      encoding: 'utf8'
+    })
     
     return compressedPath
   } catch (error) {
@@ -115,7 +199,10 @@ async function compressAudio(inputPath: string): Promise<string> {
 async function getAudioDuration(inputPath: string): Promise<number> {
   try {
     const command = `ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${inputPath}"`
-    const { stdout } = await execAsync(command, { timeout: 30000 })
+    const { stdout } = await execAsync(command, { 
+      timeout: 30000,
+      encoding: 'utf8'
+    })
     return parseFloat(stdout.trim())
   } catch (error) {
     console.warn('Could not get audio duration, assuming 600 seconds')
@@ -158,7 +245,10 @@ async function splitAudio(inputPath: string, maxSizeMB: number = 20): Promise<st
       
       // Split audio with compression
       const command = `ffmpeg -i "${inputPath}" -ss ${startTime} -t ${chunkDuration} -ac 1 -ar 16000 -ab 64k -y "${chunkPath}"`
-      await execAsync(command, { timeout: 180000 })
+      await execAsync(command, { 
+        timeout: 180000,
+        encoding: 'utf8'
+      })
       
       // Check if chunk was created and has content
       if (fs.existsSync(chunkPath)) {
@@ -210,10 +300,35 @@ export async function transcribeAudio(audioPath: string, progressCallback?: (cur
     // Import fs module properly
     const fs = await import('fs')
     
+    console.log(`🎤 STARTING TRANSCRIPTION: Checking file ${audioPath}`)
+    
     // Check if file exists
     if (!fs.existsSync(audioPath)) {
-      throw new Error(`Audio file not found: ${audioPath}`)
+      // Try to find similar files in the directory for debugging
+      const path = await import('path')
+      const dir = path.dirname(audioPath)
+      const expectedFilename = path.basename(audioPath)
+      
+      try {
+        const { promisify } = await import('util')
+        const { exec } = await import('child_process')
+        const execAsync = promisify(exec)
+        const isWindows = process.platform === 'win32'
+        const listCommand = isWindows ? `dir /b "${dir}"` : `ls "${dir}"`
+        const { stdout } = await execAsync(listCommand, { encoding: 'utf8' })
+        const availableFiles = stdout.trim().split('\n').map(file => file.replace(/\r/g, '').trim()).filter(file => file.length > 0)
+        
+        console.log(`❌ TRANSCRIPTION ERROR: File not found`)
+        console.log(`Expected: ${expectedFilename}`)
+        console.log(`Available files in ${dir}:`, availableFiles)
+        
+        throw new Error(`Audio file not found: ${audioPath}. Available files: ${availableFiles.join(', ')}`)
+      } catch (listError) {
+        throw new Error(`Audio file not found: ${audioPath}`)
+      }
     }
+    
+    console.log(`✅ TRANSCRIPTION: File found, proceeding with transcription`)
 
     // Get file stats to ensure it's not empty
     let stats = fs.statSync(audioPath)
@@ -361,6 +476,150 @@ ${transcription}`
   } catch (error) {
     throw new Error(`Failed to generate notes: ${error}`)
   }
+}
+
+export async function saveAudioFileToDatabase(transcriptionId: string, audioPath: string): Promise<void> {
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const { getDatabase } = await import('./mongodb')
+    
+    // Check if file exists
+    if (!fs.existsSync(audioPath)) {
+      console.warn(`Audio file not found for saving: ${audioPath}`)
+      return
+    }
+    
+    const stats = fs.statSync(audioPath)
+    const filename = path.basename(audioPath)
+    const fileSizeMB = stats.size / (1024 * 1024)
+    
+    // Determine MIME type based on file extension
+    const ext = path.extname(filename).toLowerCase()
+    let mimeType = 'audio/mpeg' // default
+    switch (ext) {
+      case '.mp3':
+        mimeType = 'audio/mpeg'
+        break
+      case '.wav':
+        mimeType = 'audio/wav'
+        break
+      case '.webm':
+        mimeType = 'audio/webm'
+        break
+      case '.m4a':
+        mimeType = 'audio/mp4'
+        break
+      case '.ogg':
+        mimeType = 'audio/ogg'
+        break
+      default:
+        mimeType = 'audio/mpeg'
+    }
+    
+    const db = await getDatabase()
+    
+    // For large files (>15MB), use GridFS
+    // For smaller files, use regular document storage for better performance
+    const MAX_DOCUMENT_SIZE_MB = 15
+    
+    if (fileSizeMB > MAX_DOCUMENT_SIZE_MB) {
+      console.log(`Using GridFS for large audio file: ${filename} (${fileSizeMB.toFixed(2)} MB)`)
+      await saveAudioFileWithGridFS(db, transcriptionId, audioPath, filename, mimeType, stats.size)
+    } else {
+      console.log(`Using document storage for audio file: ${filename} (${fileSizeMB.toFixed(2)} MB)`)
+      await saveAudioFileAsDocument(db, transcriptionId, audioPath, filename, mimeType, stats.size)
+    }
+    
+  } catch (error) {
+    console.error(`Failed to save audio file to database:`, error)
+  }
+}
+
+async function saveAudioFileAsDocument(db: any, transcriptionId: string, audioPath: string, filename: string, mimeType: string, fileSize: number): Promise<void> {
+  const fs = await import('fs')
+  const { ObjectId } = await import('mongodb')
+  
+  // Read file data for small files
+  const audioData = fs.readFileSync(audioPath)
+  
+  const transcriptionsCollection = db.collection('transcriptions')
+  await transcriptionsCollection.updateOne(
+    { _id: new ObjectId(transcriptionId) },
+    {
+      $set: {
+        audioFile: {
+          data: audioData,
+          filename: filename,
+          mimeType: mimeType,
+          size: fileSize,
+          storageType: 'document'
+        },
+        updatedAt: new Date()
+      }
+    }
+  )
+  
+  console.log(`Saved audio file as document: ${filename} (${Math.round(fileSize / 1024)} KB)`)
+}
+
+async function saveAudioFileWithGridFS(db: any, transcriptionId: string, audioPath: string, filename: string, mimeType: string, fileSize: number): Promise<void> {
+  const fs = await import('fs')
+  const { GridFSBucket, ObjectId } = await import('mongodb')
+  
+  // Create GridFS bucket
+  const bucket = new GridFSBucket(db, { bucketName: 'audioFiles' })
+  
+  // Create a unique filename with transcription ID
+  const gridfsFilename = `${transcriptionId}_${filename}`
+  
+  // Upload file to GridFS
+  const uploadStream = bucket.openUploadStream(gridfsFilename, {
+    metadata: {
+      transcriptionId: transcriptionId,
+      originalFilename: filename,
+      mimeType: mimeType,
+      uploadDate: new Date()
+    }
+  })
+  
+  // Stream the file to GridFS
+  const readStream = fs.createReadStream(audioPath)
+  
+  return new Promise((resolve, reject) => {
+    readStream.pipe(uploadStream)
+      .on('error', (error) => {
+        console.error('Error uploading to GridFS:', error)
+        reject(error)
+      })
+      .on('finish', async () => {
+        try {
+          // Update transcription document with GridFS file info
+          const transcriptionsCollection = db.collection('transcriptions')
+          await transcriptionsCollection.updateOne(
+            { _id: new ObjectId(transcriptionId) },
+            {
+              $set: {
+                audioFile: {
+                  gridfsId: uploadStream.id,
+                  filename: filename,
+                  mimeType: mimeType,
+                  size: fileSize,
+                  storageType: 'gridfs'
+                },
+                updatedAt: new Date()
+              }
+            }
+          )
+          
+          console.log(`Saved audio file to GridFS: ${filename} (${Math.round(fileSize / (1024 * 1024))} MB)`)
+          resolve()
+        } catch (error) {
+          console.error('Error updating transcription with GridFS info:', error)
+          reject(error)
+        }
+      })
+  })
 }
 
 export async function cleanupTempFile(filePath: string): Promise<void> {

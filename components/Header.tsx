@@ -5,6 +5,7 @@ import { useSession, signIn } from 'next-auth/react'
 import { User } from 'lucide-react'
 import SignOutButton from './SignOutButton'
 import Logo from './Logo'
+import { optimizeGoogleImageUrl, getFallbackImageUrl } from '@/lib/image-utils'
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -32,15 +33,25 @@ export default function Header() {
                 >
                   {session.user?.image ? (
                     <img
-                      src={session.user.image}
+                      src={optimizeGoogleImageUrl(session.user.image, 32)}
                       alt={session.user.name || 'User'}
-                      className="h-8 w-8 rounded-full border-2 border-white/20"
+                      className="h-8 w-8 rounded-full border-2 border-white/20 object-cover"
+                      onError={(e) => {
+                        console.warn('Failed to load user avatar:', session.user.image)
+                        const fallbackUrl = getFallbackImageUrl(session.user.image)
+                        if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {
+                          console.log('Trying fallback image URL')
+                          e.currentTarget.src = fallbackUrl
+                        } else {
+                          e.currentTarget.style.display = 'none'
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                        }
+                      }}
                     />
-                  ) : (
-                    <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center border-2 border-white/20">
-                      <User className="h-4 w-4 text-white" />
-                    </div>
-                  )}
+                  ) : null}
+                  <div className={`h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center border-2 border-white/20 ${session.user?.image ? 'hidden' : ''}`}>
+                    <User className="h-4 w-4 text-white" />
+                  </div>
                   <span className="hidden sm:inline text-sm font-medium">
                     {session.user?.name?.split(' ')[0] || 'Profile'}
                   </span>

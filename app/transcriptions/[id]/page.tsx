@@ -150,7 +150,7 @@ export default function TranscriptionDetailPage() {
     }
   }
 
-  const handleDownload = async (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd') => {
+  const handleDownload = async (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd' | 'audio') => {
     try {
       const response = await fetch(`/api/download?id=${id}&type=${type}`)
       
@@ -162,9 +162,21 @@ export default function TranscriptionDetailPage() {
         a.href = url
         
         const contentDisposition = response.headers.get('Content-Disposition')
-        const filename = contentDisposition
-          ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
-          : `${type}.txt`
+        let filename = `${type}.txt`
+        
+        if (contentDisposition) {
+          // Try to extract filename from Content-Disposition header
+          // Handle both 'filename="..."' and 'filename*=UTF-8''...' formats
+          const filenameMatch = contentDisposition.match(/filename="([^"]+)"/) ||
+                               contentDisposition.match(/filename\*=UTF-8''([^;]+)/)
+          if (filenameMatch) {
+            filename = filenameMatch[1]
+            // Decode if it's URL encoded (from filename* format)
+            if (contentDisposition.includes('filename*=UTF-8')) {
+              filename = decodeURIComponent(filename)
+            }
+          }
+        }
         
         a.download = filename
         document.body.appendChild(a)
@@ -176,7 +188,8 @@ export default function TranscriptionDetailPage() {
           transcription: 'Transcription',
           notes: 'Notes',
           notion: 'Notion File',
-          prd: 'PRD'
+          prd: 'PRD',
+          audio: 'Audio File'
         }
         
         success('Downloaded!', `${typeNames[type]} saved successfully.`)
@@ -410,10 +423,12 @@ export default function TranscriptionDetailPage() {
                     hasTranscription={!!transcription.content}
                     hasNotes={!!transcription.notes}
                     hasPRD={!!transcription.prd}
+                    hasAudio={!!transcription.audioFile}
                     onDownload={handleDownload}
                     onGeneratePRD={handleGeneratePRD}
                     onGenerateNotes={handleGenerateNotes}
                     isGeneratingPRD={isGeneratingPRD}
+                    isGeneratingNotes={isGeneratingNotes}
                     isAuthenticated={!!session?.user}
                     userTokens={userTokens}
                   />
@@ -494,15 +509,104 @@ export default function TranscriptionDetailPage() {
         </div>
       )}
 
-      {/* Error Section */}
-      {transcription.error && (
-        <div className="bg-red-50 border-b border-red-200">
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex items-start space-x-3">
-              <XCircle className="h-6 w-6 text-red-500 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-red-900">Error Processing Transcription</h3>
-                <p className="text-red-700 mt-1">{transcription.error}</p>
+      {/* Error State with Video Display */}
+      {transcription.status === 'error' && transcription.error && (
+        <div className="bg-gray-900 min-h-screen">
+          <div className="max-w-6xl mx-auto px-4 py-16">
+            <div className="text-center">
+              {/* Video Thumbnail Section - Even on Error */}
+              {transcription.thumbnail && (
+                <div className="max-w-2xl mx-auto mb-8">
+                  <a 
+                    href={transcription.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block bg-black rounded-lg overflow-hidden aspect-video relative group cursor-pointer"
+                  >
+                    <img 
+                      src={transcription.thumbnail} 
+                      alt={transcription.title || 'Video thumbnail'}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-20 flex items-center justify-center transition-all">
+                      <div className="w-20 h-20 bg-white bg-opacity-90 group-hover:bg-opacity-100 rounded-full flex items-center justify-center transition-all">
+                        <Play className="h-8 w-8 text-gray-900 ml-1" />
+                      </div>
+                    </div>
+                    <div className="absolute top-4 right-4 bg-red-600 bg-opacity-90 group-hover:bg-opacity-100 text-white px-3 py-1 rounded text-sm transition-all">
+                      Failed to process
+                    </div>
+                    <div className="absolute bottom-4 right-4 bg-blue-600 bg-opacity-90 group-hover:bg-opacity-100 text-white px-3 py-1 rounded text-sm transition-all">
+                      Click to watch
+                    </div>
+                  </a>
+                  <div className="mt-4">
+                    <a 
+                      href={transcription.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors text-sm"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span>View original video</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              )}
+              
+              {/* Fallback when no thumbnail is available */}
+              {!transcription.thumbnail && (
+                <div className="max-w-2xl mx-auto mb-8">
+                  <a 
+                    href={transcription.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block bg-red-900 rounded-lg overflow-hidden aspect-video relative group cursor-pointer hover:bg-red-800 transition-colors"
+                  >
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-20 h-20 bg-white bg-opacity-90 group-hover:bg-opacity-100 rounded-full flex items-center justify-center transition-all mx-auto mb-4">
+                          <Play className="h-8 w-8 text-gray-900 ml-1" />
+                        </div>
+                        <p className="text-white text-lg font-medium">Click to watch video</p>
+                        <p className="text-red-200 text-sm mt-1">Transcription failed</p>
+                      </div>
+                    </div>
+                    <div className="absolute top-4 right-4 bg-red-600 bg-opacity-90 group-hover:bg-opacity-100 text-white px-3 py-1 rounded text-sm transition-all">
+                      Failed to process
+                    </div>
+                  </a>
+                  <div className="mt-4">
+                    <a 
+                      href={transcription.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors text-sm"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span>View original video</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              )}
+              
+              <XCircle className="h-16 w-16 text-red-500 mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-white mb-4">Transcription Failed</h2>
+              <div className="bg-red-900 bg-opacity-50 rounded-lg p-6 max-w-2xl mx-auto">
+                <h3 className="font-medium text-red-200 mb-2">Error Details</h3>
+                <p className="text-red-100 text-sm">{transcription.error}</p>
+              </div>
+              <div className="mt-6 space-y-3">
+                <p className="text-gray-300">You can still watch the original video above.</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Try Again</span>
+                </button>
               </div>
             </div>
           </div>
@@ -681,7 +785,43 @@ export default function TranscriptionDetailPage() {
                       <div className="text-center py-12">
                         <StickyNote className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No Notes Available</h3>
-                        <p className="text-gray-600">AI-generated notes are not available for this transcription yet.</p>
+                        <p className="text-gray-600 mb-6">AI-generated notes are not available for this transcription yet.</p>
+                        
+                        {userTokens && userTokens.hasTokens ? (
+                          <button
+                            onClick={() => handleGenerateNotes(transcription._id!.toString())}
+                            disabled={isGeneratingNotes}
+                            className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isGeneratingNotes ? (
+                              <>
+                                <RefreshCw className="h-5 w-5 animate-spin" />
+                                <span>Generating Notes...</span>
+                              </>
+                            ) : (
+                              <>
+                                <StickyNote className="h-5 w-5" />
+                                <span>Generate AI Notes (1 token)</span>
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+                            <div className="flex items-center space-x-2 text-yellow-800 mb-2">
+                              <StickyNote className="h-5 w-5" />
+                              <span className="font-medium">Need Tokens</span>
+                            </div>
+                            <p className="text-yellow-700 text-sm mb-3">
+                              You need at least 1 token to generate AI notes for this transcription.
+                            </p>
+                            <button
+                              onClick={() => router.push('/payment/buy-tokens')}
+                              className="inline-flex items-center space-x-2 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+                            >
+                              <span>Buy Tokens</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -700,21 +840,66 @@ export default function TranscriptionDetailPage() {
               {/* Video Thumbnail Section */}
               {transcription.thumbnail && (
                 <div className="max-w-2xl mx-auto mb-8">
-                  <div className="bg-black rounded-lg overflow-hidden aspect-video relative">
+                  <a 
+                    href={transcription.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block bg-black rounded-lg overflow-hidden aspect-video relative group cursor-pointer"
+                  >
                     <img 
                       src={transcription.thumbnail} 
                       alt={transcription.title || 'Video thumbnail'}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                      <div className="w-20 h-20 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-20 flex items-center justify-center transition-all">
+                      <div className="w-20 h-20 bg-white bg-opacity-90 group-hover:bg-opacity-100 rounded-full flex items-center justify-center transition-all">
                         <Play className="h-8 w-8 text-gray-900 ml-1" />
                       </div>
                     </div>
-                    <div className="absolute top-4 right-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
+                    <div className="absolute top-4 right-4 bg-black bg-opacity-70 group-hover:bg-opacity-80 text-white px-3 py-1 rounded text-sm transition-all">
                       Processing...
                     </div>
+                    <div className="absolute bottom-4 right-4 bg-blue-600 bg-opacity-90 group-hover:bg-opacity-100 text-white px-3 py-1 rounded text-sm transition-all">
+                      Click to watch
+                    </div>
+                  </a>
+                  <div className="mt-4">
+                    <a 
+                      href={transcription.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors text-sm"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span>View original video</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   </div>
+                </div>
+              )}
+              
+              {/* Fallback when no thumbnail is available */}
+              {!transcription.thumbnail && (
+                <div className="max-w-2xl mx-auto mb-8">
+                  <a 
+                    href={transcription.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block bg-gray-800 rounded-lg overflow-hidden aspect-video relative group cursor-pointer hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-20 h-20 bg-white bg-opacity-90 group-hover:bg-opacity-100 rounded-full flex items-center justify-center transition-all mx-auto mb-4">
+                          <Play className="h-8 w-8 text-gray-900 ml-1" />
+                        </div>
+                        <p className="text-white text-lg font-medium">Click to watch video</p>
+                        <p className="text-gray-300 text-sm mt-1">Processing transcription...</p>
+                      </div>
+                    </div>
+                    <div className="absolute top-4 right-4 bg-black bg-opacity-70 group-hover:bg-opacity-80 text-white px-3 py-1 rounded text-sm transition-all">
+                      Processing...
+                    </div>
+                  </a>
                   <div className="mt-4">
                     <a 
                       href={transcription.url} 

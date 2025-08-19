@@ -77,7 +77,7 @@ export const TOKEN_PACKAGES = [
 1. Start your application: `npm run dev`
 2. Sign in to your application
 3. Navigate to `/payment/buy-tokens`
-4. Try purchasing tokens with Stripe's test card: `4242 4242 4242 4242`
+4. Try purchasing tokens with Stripe's test card: `                        `
 5. Check that tokens are added to your account after payment
 
 ## Step 6: Production Checklist

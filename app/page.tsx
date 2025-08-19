@@ -154,7 +154,7 @@ export default function Home() {
     }
   }
 
-  const handleDownload = async (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd') => {
+  const handleDownload = async (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd' | 'audio') => {
     try {
       const transcription = transcriptions.find(t => t._id?.toString() === id)
       const title = transcription?.title || 'content'
@@ -170,9 +170,21 @@ export default function Home() {
         
         // Get filename from Content-Disposition header
         const contentDisposition = response.headers.get('Content-Disposition')
-        const filename = contentDisposition
-          ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
-          : `${type}.txt`
+        let filename = `${type}.txt`
+        
+        if (contentDisposition) {
+          // Try to extract filename from Content-Disposition header
+          // Handle both 'filename="..."' and 'filename*=UTF-8''...' formats
+          const filenameMatch = contentDisposition.match(/filename="([^"]+)"/) ||
+                               contentDisposition.match(/filename\*=UTF-8''([^;]+)/)
+          if (filenameMatch) {
+            filename = filenameMatch[1]
+            // Decode if it's URL encoded (from filename* format)
+            if (contentDisposition.includes('filename*=UTF-8')) {
+              filename = decodeURIComponent(filename)
+            }
+          }
+        }
         
         a.download = filename
         document.body.appendChild(a)
@@ -185,7 +197,8 @@ export default function Home() {
           transcription: 'Transcription',
           notes: 'Notes',
           notion: 'Notion File',
-          prd: 'PRD'
+          prd: 'PRD',
+          audio: 'Audio File'
         }
         
         success(
@@ -546,7 +559,6 @@ export default function Home() {
                   onDownload={handleDownload}
                   onGeneratePRD={handleGeneratePRD}
                   onGenerateNotes={handleGenerateNotes}
-                  onDelete={handleDeleteTranscription}
                   isAuthenticated={!!session}
                   userTokens={userTokens}
                 />

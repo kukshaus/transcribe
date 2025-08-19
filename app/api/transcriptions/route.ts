@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { Transcription, TranscriptionStatus } from '@/lib/models/Transcription'
-import { downloadAudio, transcribeAudio, generateNotes, cleanupTempFile, getVideoMetadata } from '@/lib/transcription'
+import { downloadAudio, transcribeAudio, generateNotes, cleanupTempFile, getVideoMetadata, saveAudioFileToDatabase } from '@/lib/transcription'
 import { ObjectId } from 'mongodb'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
@@ -26,18 +26,19 @@ export async function POST(request: NextRequest) {
       // Authenticated user - initialize tokens if needed
       await initializeUserTokens(session.user.id)
       
-      // Check if user has tokens (need 2 tokens: 1 for transcription + 1 for notes)
+      // Check if user has tokens (need 1 token for transcription)
       const { hasTokens, tokenCount } = await checkUserTokens(session.user.id)
       
-      if (tokenCount < 2) {
+      if (tokenCount < 1) {
         return NextResponse.json({ 
-          error: 'Insufficient tokens. You need 2 tokens (1 for transcription + 1 for notes). Please purchase more tokens to continue.',
+          error: 'Insufficient tokens. You need 1 token for transcription. Please purchase more tokens to continue.',
           code: 'INSUFFICIENT_TOKENS',
           upgradeRequired: true
         }, { status: 402 })
       }
       
       // Consume 1 token for transcription creation
+      console.log(`💰 CONSUMING TOKEN for transcription creation (user: ${session.user.id}, URL: ${url})`)
       const { success, remainingTokens } = await consumeUserTokenWithHistory(
         session.user.id,
         'transcription_creation',
@@ -46,11 +47,14 @@ export async function POST(request: NextRequest) {
       )
       
       if (!success) {
+        console.log(`❌ FAILED to consume token for transcription creation (user: ${session.user.id})`)
         return NextResponse.json({ 
           error: 'Failed to consume token. Please try again.',
           code: 'TOKEN_CONSUMPTION_FAILED'
         }, { status: 500 })
       }
+      
+      console.log(`✅ TOKEN CONSUMED for transcription creation (user: ${session.user.id}, remaining: ${remainingTokens})`)
       
       transcription = {
         url,
@@ -90,8 +94,10 @@ export async function POST(request: NextRequest) {
     const result = await transcriptionsCollection.insertOne(transcription)
     const transcriptionId = result.insertedId.toString()
 
-    // Start background processing (notes generation only for authenticated users)
-    processTranscription(transcriptionId, url, !!session?.user?.id, session?.user?.id).catch(console.error)
+    console.log(`🎬 NEW TRANSCRIPTION CREATED: ID=${transcriptionId}, URL=${url}, User=${session?.user?.id || 'anonymous'}`)
+
+    // Start background processing (transcription only - notes can be generated later by user choice)
+    processTranscription(transcriptionId, url, false, session?.user?.id).catch(console.error)
 
     return NextResponse.json({ 
       id: transcriptionId,
@@ -136,7 +142,11 @@ export async function GET(request: NextRequest) {
       _id: t._id?.toString(),
     }))
 
-    return NextResponse.json(serializedTranscriptions)
+    return NextResponse.json(serializedTranscriptions, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      }
+    })
   } catch (error) {
     console.error('Error fetching transcriptions:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -175,6 +185,9 @@ async function processTranscription(transcriptionId: string, url: string, genera
   const db = await getDatabase()
   const transcriptionsCollection = db.collection<Transcription>('transcriptions')
   const totalSteps = generateNotes ? 5 : 4
+  
+  // Track processing start time
+  const processingStartTime = Date.now()
 
   try {
     
@@ -184,7 +197,13 @@ async function processTranscription(transcriptionId: string, url: string, genera
     
     // Get video metadata (title, duration)
     const metadata = await getVideoMetadata(url)
-    console.log(`Video metadata:`, metadata)
+    console.log(`🎬 VIDEO METADATA for ${transcriptionId}:`, metadata)
+    
+    if (metadata.title) {
+      console.log(`📹 TRANSCRIBING VIDEO: "${metadata.title}" (ID: ${transcriptionId})${userId ? ` for user ${userId}` : ' [anonymous]'}`)
+    } else {
+      console.log(`📹 TRANSCRIBING VIDEO: [Title not available] (ID: ${transcriptionId})${userId ? ` for user ${userId}` : ' [anonymous]'}`)
+    }
     
     // Update with title, duration, and thumbnail if available
     if (metadata.title || metadata.duration || metadata.thumbnail) {
@@ -202,6 +221,7 @@ async function processTranscription(transcriptionId: string, url: string, genera
       
       // Update spending history with transcription details for authenticated users
       if (userId && metadata.title) {
+        console.log(`💰 UPDATING SPENDING HISTORY: Adding video "${metadata.title}" to user ${userId}'s transaction history`)
         await updateTranscriptionInSpendingHistory(userId, transcriptionId, metadata.title)
       }
     }
@@ -241,7 +261,8 @@ async function processTranscription(transcriptionId: string, url: string, genera
       // Step 5: Generate notes (only for authenticated users)
       stepNumber = 5
       await updateProgress(transcriptionsCollection, transcriptionId, 5, 'Generating Notes', 'Creating structured notes from transcription...', totalSteps)
-      console.log('Generating notes from transcription')
+      const videoTitle = metadata.title || '[Title not available]'
+      console.log(`📝 GENERATING NOTES for video: "${videoTitle}" (ID: ${transcriptionId})`)
       
       // Check if user still has tokens for notes generation
       const { hasTokens } = await checkUserTokens(userId)
@@ -259,9 +280,9 @@ async function processTranscription(transcriptionId: string, url: string, genera
           transcriptionDoc?.title || 'Transcription'
         )
         
-        console.log('Notes generated and token consumed for user:', userId)
+        console.log(`✅ NOTES COMPLETED for video: "${videoTitle}" - Token consumed for user: ${userId}`)
       } else {
-        console.log('User has insufficient tokens for notes generation, skipping notes')
+        console.log(`❌ INSUFFICIENT TOKENS for notes generation: "${videoTitle}" (user: ${userId})`)
         // Update progress to indicate notes were skipped
         await updateProgress(
           transcriptionsCollection, 
@@ -274,7 +295,16 @@ async function processTranscription(transcriptionId: string, url: string, genera
       }
     }
 
-    // Complete: Update with results
+    // Complete: Update with results and processing duration
+    const processingEndTime = Date.now()
+    const processingDuration = processingEndTime - processingStartTime
+    
+    // Get the final transcription with title for logging
+    const finalTranscription = await transcriptionsCollection.findOne({ _id: new ObjectId(transcriptionId) })
+    const videoTitle = finalTranscription?.title || '[Title not available]'
+    
+    console.log(`✅ TRANSCRIPTION COMPLETED: "${videoTitle}" (ID: ${transcriptionId}) in ${processingDuration}ms (${Math.round(processingDuration / 1000)}s)${userId ? ` for user ${userId}` : ' [anonymous]'}`)
+    
     await transcriptionsCollection.updateOne(
       { _id: new ObjectId(transcriptionId) },
       {
@@ -282,6 +312,7 @@ async function processTranscription(transcriptionId: string, url: string, genera
           status: TranscriptionStatus.COMPLETED,
           content: transcriptionText,
           ...(notes && { notes }),
+          processingDuration: processingDuration,
           progress: {
             currentStep: 'Completed',
             stepNumber,
@@ -294,13 +325,22 @@ async function processTranscription(transcriptionId: string, url: string, genera
       }
     )
 
+    // Save audio file to database before cleanup
+    await saveAudioFileToDatabase(transcriptionId, audioPath)
+    
     // Clean up temporary file
     await cleanupTempFile(audioPath)
 
     console.log(`Transcription completed for: ${transcriptionId}`)
 
   } catch (error) {
-    console.error(`Error processing transcription ${transcriptionId}:`, error)
+    // Try to get video title for error logging
+    const db = await getDatabase()
+    const transcriptionsCollection = db.collection<Transcription>('transcriptions')
+    const failedTranscription = await transcriptionsCollection.findOne({ _id: new ObjectId(transcriptionId) })
+    const videoTitle = failedTranscription?.title || '[Title not available]'
+    
+    console.error(`❌ TRANSCRIPTION FAILED for video: "${videoTitle}" (ID: ${transcriptionId}):`, error)
     
     // Update status to error with helpful message
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -322,12 +362,19 @@ async function processTranscription(transcriptionId: string, url: string, genera
       userFriendlyError = 'The audio file is too large to process. Please try a shorter video or audio file.'
     }
     
+    // Calculate processing duration even for errors
+    const processingEndTime = Date.now()
+    const processingDuration = processingEndTime - processingStartTime
+    
+    console.log(`Transcription failed for ${transcriptionId} after ${processingDuration}ms (${Math.round(processingDuration / 1000)}s)`)
+    
     await transcriptionsCollection.updateOne(
       { _id: new ObjectId(transcriptionId) },
       {
         $set: {
           status: TranscriptionStatus.ERROR,
           error: userFriendlyError,
+          processingDuration: processingDuration,
           progress: {
             currentStep: 'Error',
             stepNumber: 0,

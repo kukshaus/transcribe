@@ -61,33 +61,61 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Add tokens to user account with history tracking
+      const db = await getDatabase()
+      const paymentsCollection = db.collection('payments')
+
+      // IDEMPOTENCY CHECK: Prevent duplicate webhook processing
+      // Use findOneAndUpdate with upsert to atomically check and create payment record
       const tokensToAdd = parseInt(tokens)
       const amount = session.amount_total / 100 // Convert from cents to dollars
       
-      await addTokensToUserWithHistory(
-        userId,
-        tokensToAdd,
-        'token_purchase',
-        `Purchased ${tokensToAdd} tokens for $${amount.toFixed(2)}`
-      )
+      try {
+        const paymentRecord = await paymentsCollection.findOneAndUpdate(
+          { stripeSessionId: session.id },
+          {
+            $setOnInsert: {
+              userId: new ObjectId(userId),
+              stripeSessionId: session.id,
+              stripePaymentIntentId: session.payment_intent,
+              amount: session.amount_total,
+              currency: session.currency,
+              tokensAdded: tokensToAdd,
+              status: 'completed',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+          },
+          { 
+            upsert: true, 
+            returnDocument: 'after'
+          }
+        )
 
-      // Create payment record
-      const db = await getDatabase()
-      const paymentsCollection = db.collection('payments')
-      await paymentsCollection.insertOne({
-        userId: new ObjectId(userId),
-        stripeSessionId: session.id,
-        stripePaymentIntentId: session.payment_intent,
-        amount: session.amount_total,
-        currency: session.currency,
-        tokensAdded: tokensToAdd,
-        status: 'completed',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+        // If the document was already there (not inserted), this is a duplicate webhook
+        if (!paymentRecord.lastErrorObject?.upserted) {
+          console.log(`Payment already processed for session ${session.id}, skipping duplicate webhook`)
+          return NextResponse.json({ received: true, message: 'Already processed' })
+        }
 
-      console.log(`Added ${tokensToAdd} tokens to user ${userId}`)
+        console.log(`Processing payment: Adding ${tokensToAdd} tokens to user ${userId} for session ${session.id}`)
+        
+        // Only add tokens if this is the first time processing this payment
+        await addTokensToUserWithHistory(
+          userId,
+          tokensToAdd,
+          'token_purchase',
+          `Purchased ${tokensToAdd} tokens for $${amount.toFixed(2)}`
+        )
+      } catch (error) {
+        // If there's a duplicate key error, it means another webhook already processed this
+        if (error.code === 11000) {
+          console.log(`Duplicate webhook detected for session ${session.id}, already processed`)
+          return NextResponse.json({ received: true, message: 'Already processed' })
+        }
+        throw error
+      }
+
+      console.log(`Successfully added ${tokensToAdd} tokens to user ${userId} for session ${session.id}`)
     }
 
     return NextResponse.json({ received: true })

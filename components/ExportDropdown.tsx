@@ -7,7 +7,8 @@ import {
   Database, 
   ChevronDown, 
   RefreshCw,
-  Sparkles
+  Sparkles,
+  Music
 } from 'lucide-react'
 
 interface ExportAction {
@@ -26,10 +27,12 @@ interface ExportDropdownProps {
   hasTranscription: boolean
   hasNotes: boolean
   hasPRD: boolean
-  onDownload: (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd') => void
+  hasAudio?: boolean
+  onDownload: (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd' | 'audio') => void
   onGeneratePRD: (id: string) => void
   onGenerateNotes?: (id: string) => void
   isGeneratingPRD: boolean
+  isGeneratingNotes?: boolean
   isAuthenticated?: boolean
   userTokens?: {tokens: number, hasTokens: boolean} | null
 }
@@ -39,10 +42,12 @@ export default function ExportDropdown({
   hasTranscription,
   hasNotes,
   hasPRD,
+  hasAudio = false,
   onDownload,
   onGeneratePRD,
   onGenerateNotes,
   isGeneratingPRD,
+  isGeneratingNotes = false,
   isAuthenticated = false,
   userTokens
 }: ExportDropdownProps) {
@@ -71,6 +76,14 @@ export default function ExportDropdown({
       available: hasTranscription
     },
     {
+      id: 'audio',
+      label: 'Download Audio',
+      icon: <Music className="h-4 w-4" />,
+      description: 'Original audio file',
+      action: () => onDownload(transcriptionId, 'audio'),
+      available: hasAudio
+    },
+    {
       id: 'notes',
       label: 'Download Notes',
       icon: <Download className="h-4 w-4" />,
@@ -90,16 +103,18 @@ export default function ExportDropdown({
     },
     {
       id: 'generate-notes',
-      label: 'Generate Notes',
-      icon: <Sparkles className="h-4 w-4" />,
+      label: isGeneratingNotes ? 'Generating Notes...' : 'Generate Notes',
+      icon: isGeneratingNotes ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />,
       description: !isAuthenticated ? 'Sign in required for AI features' : 
                   !userTokens?.hasTokens ? 'No tokens remaining' : 
+                  isGeneratingNotes ? 'AI is analyzing your transcription and creating structured notes...' :
                   'Generate AI notes from transcription',
       action: !isAuthenticated ? () => window.location.href = '/auth/signin' : 
               !userTokens?.hasTokens ? () => {} : 
               () => onGenerateNotes?.(transcriptionId),
       available: !hasNotes,
-      disabled: !isAuthenticated || !userTokens?.hasTokens
+      disabled: isGeneratingNotes || !isAuthenticated || !userTokens?.hasTokens,
+      loading: isGeneratingNotes
     },
     {
       id: 'generate-prd',
@@ -144,16 +159,20 @@ export default function ExportDropdown({
         onClick={() => setIsOpen(!isOpen)}
         className={`inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors ${
           isGeneratingPRD 
-            ? 'text-purple-700 bg-purple-50 border border-purple-200 hover:bg-purple-100' 
+            ? 'text-purple-700 bg-purple-50 border border-purple-200 hover:bg-purple-100'
+            : isGeneratingNotes
+            ? 'text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100' 
             : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400'
         }`}
       >
         {isGeneratingPRD ? (
           <RefreshCw className="h-4 w-4 animate-spin" />
+        ) : isGeneratingNotes ? (
+          <RefreshCw className="h-4 w-4 animate-spin" />
         ) : (
           <Download className="h-4 w-4" />
         )}
-        <span>{isGeneratingPRD ? 'Generating...' : 'Export'}</span>
+        <span>{isGeneratingPRD ? 'Generating PRD...' : isGeneratingNotes ? 'Generating Notes...' : 'Export'}</span>
         <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -178,10 +197,16 @@ export default function ExportDropdown({
                     ? action.loading 
                       ? 'bg-purple-100 text-purple-600 animate-pulse' 
                       : 'bg-purple-100 text-purple-600'
+                    : action.id === 'generate-notes'
+                    ? action.loading
+                      ? 'bg-blue-100 text-blue-600 animate-pulse'
+                      : 'bg-blue-100 text-blue-600'
                     : action.id === 'prd'
                     ? 'bg-green-100 text-green-600'
                     : action.id === 'notion'
                     ? 'bg-blue-100 text-blue-600'
+                    : action.id === 'audio'
+                    ? 'bg-orange-100 text-orange-600'
                     : 'bg-gray-100 text-gray-600'
                 }`}>
                   {action.icon}

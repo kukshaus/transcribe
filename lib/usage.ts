@@ -4,7 +4,7 @@ import { SpendingHistory } from './models/SpendingHistory'
 import { ObjectId } from 'mongodb'
 
 export const ANONYMOUS_TRANSCRIPTION_LIMIT = 3
-export const FREE_TOKENS_FOR_NEW_USERS = 3
+export const FREE_TOKENS_FOR_NEW_USERS = 1
 
 export async function checkAnonymousUserLimit(fingerprint: string, ip: string, userAgent: string): Promise<{
   canUse: boolean
@@ -117,20 +117,19 @@ export async function consumeUserToken(userId: string): Promise<{
     return { success: false, remainingTokens: 0, usedFreeToken: false }
   }
   
-  // Determine if we're consuming a free token
-  const freeTokensRemaining = userBefore.freeTokensRemaining || 0
-  const usedFreeToken = freeTokensRemaining > 0
+  // For paid operations (notes, PRD, transcription), we should prioritize using PAID tokens
+  // Free tokens should only be consumed for free operations (welcome grants, transfers)
+  // Since this function is called for paid operations, we never consume free tokens here
+  const usedFreeToken = false
   
-  // Prepare update operations
+  // Prepare update operations - only consume from total tokens, not free tokens
   const updateOps: any = {
     $inc: { tokens: -1 },
     $set: { updatedAt: new Date() }
   }
   
-  // If consuming a free token, also decrement freeTokensRemaining
-  if (usedFreeToken) {
-    updateOps.$inc.freeTokensRemaining = -1
-  }
+  // Note: We intentionally do NOT decrement freeTokensRemaining here
+  // Free tokens remain available for tracking purposes but aren't consumed for paid operations
   
   const result = await usersCollection.findOneAndUpdate(
     { 
@@ -147,8 +146,8 @@ export async function consumeUserToken(userId: string): Promise<{
   }
   
   console.log('Token consumption SUCCESS - remaining tokens:', result.tokens)
-  console.log('Free tokens remaining after:', result.freeTokensRemaining)
-  console.log('Used free token:', usedFreeToken)
+  console.log('Free tokens remaining after:', result.freeTokensRemaining, '(unchanged for paid operations)')
+  console.log('Used free token:', usedFreeToken, '(always false for paid operations)')
   console.log('=== END CONSUME USER TOKEN DEBUG ===')
   
   return {
@@ -179,7 +178,7 @@ export async function initializeUserTokens(userId: string): Promise<void> {
   const result = await usersCollection.updateOne(
     { 
       _id: new ObjectId(userId),
-      tokens: { $exists: false },
+      tokens: 0,
       hasReceivedInitialFreeTokens: { $ne: true } // SECURITY: Prevent duplicate initial grants
     },
     {
@@ -536,7 +535,7 @@ export async function transferAnonymousTranscriptionsToUser(
     }
     
     // SECURITY CHECK 2: Prevent duplicate transcription transfers per user for same fingerprint
-    if (user.anonymousTransferFingerprint === fingerprint) {
+    if (user.anonymousTranscriptionFingerprint === fingerprint) {
       console.log('User has already received transcriptions from this fingerprint:', userEmail, fingerprint)
       return { transcriptionsTransferred: 0, success: true, reason: 'Already received transcriptions from this fingerprint' }
     }
@@ -574,7 +573,8 @@ export async function transferAnonymousTranscriptionsToUser(
       { _id: new ObjectId(userId) },
       { 
         $set: { 
-          anonymousTransferFingerprint: fingerprint,
+          hasReceivedAnonymousTranscriptions: true,
+          anonymousTranscriptionFingerprint: fingerprint,
           updatedAt: new Date()
         }
       }

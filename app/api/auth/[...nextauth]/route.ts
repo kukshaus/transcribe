@@ -41,7 +41,7 @@ const authOptions: NextAuthOptions = {
           const { MongoClient } = await import('mongodb')
           const client = new MongoClient(process.env.MONGODB_URI!)
           await client.connect()
-          const db = client.db()
+          const db = client.db('transcriber')
           const usersCollection = db.collection('users')
           
           const dbUser = await usersCollection.findOne({ email: user.email })
@@ -74,7 +74,7 @@ const authOptions: NextAuthOptions = {
           const { MongoClient } = await import('mongodb')
           const client = new MongoClient(process.env.MONGODB_URI!)
           await client.connect()
-          const db = client.db()
+          const db = client.db('transcriber')
           const usersCollection = db.collection('users')
           
           // Check if user exists, if not create them WITHOUT tokens initially
@@ -82,17 +82,21 @@ const authOptions: NextAuthOptions = {
           
           if (!existingUser) {
             console.log('SignIn callback - Creating new user WITHOUT tokens (will be handled by transfer logic):', user.email)
-            const insertResult = await usersCollection.insertOne({
+            const newUser = {
               email: user.email,
               name: user.name,
               image: user.image,
-              // NO TOKENS HERE - will be added by frontend transfer logic
+              tokens: 0, // Initialize with 0 tokens - will be added by frontend transfer logic
               hasReceivedInitialFreeTokens: false, // SECURITY: Will be set by transfer logic
               hasReceivedAnonymousTransfer: false, // SECURITY: Initialize transfer flag
+              hasReceivedAnonymousTranscriptions: false, // SECURITY: Initialize transcription transfer flag
               createdAt: new Date(),
               updatedAt: new Date()
-            })
+            }
+            console.log('SignIn callback - Inserting user:', JSON.stringify(newUser, null, 2))
+            const insertResult = await usersCollection.insertOne(newUser)
             console.log('SignIn callback - User created with ID:', insertResult.insertedId.toString())
+            console.log('SignIn callback - Insert acknowledged:', insertResult.acknowledged)
           } else if (existingUser.tokens === undefined && existingUser.hasReceivedInitialFreeTokens === undefined) {
             // User exists but needs security flags initialized
             console.log('Initializing security flags for existing user:', user.email)
@@ -100,8 +104,10 @@ const authOptions: NextAuthOptions = {
               { email: user.email },
               { 
                 $set: { 
+                  tokens: 0, // Initialize with 0 tokens
                   hasReceivedInitialFreeTokens: false, // Will be set by transfer logic
                   hasReceivedAnonymousTransfer: false, // Initialize transfer flag
+                  hasReceivedAnonymousTranscriptions: false, // Initialize transcription transfer flag
                   updatedAt: new Date()
                 }
               }
@@ -110,7 +116,12 @@ const authOptions: NextAuthOptions = {
           
           await client.close()
         } catch (error) {
-          console.error('Error ensuring user exists:', error)
+          console.error('SignIn callback - Error ensuring user exists:', error)
+          console.error('SignIn callback - Error details:', {
+            message: error?.message,
+            stack: error?.stack,
+            email: user.email
+          })
         }
       }
       return true

@@ -1,26 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, CheckCircle, XCircle, RefreshCw, FileText, StickyNote, ExternalLink, Trash2 } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, RefreshCw, FileText, StickyNote, ExternalLink } from 'lucide-react'
 import { Transcription } from '@/lib/models/Transcription'
 import { marked } from 'marked'
 import ExportDropdown from './ExportDropdown'
 
 interface TranscriptionCardProps {
   transcription: Transcription
-  onDownload: (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd') => void
+  onDownload: (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd' | 'audio') => void
   onGeneratePRD?: (id: string) => void
   onGenerateNotes?: (id: string) => void
-  onDelete?: (id: string) => void
   isAuthenticated?: boolean
   userTokens?: {tokens: number, hasTokens: boolean} | null
 }
 
-export default function TranscriptionCard({ transcription, onDownload, onGeneratePRD, onGenerateNotes, onDelete, isAuthenticated = false, userTokens }: TranscriptionCardProps) {
+export default function TranscriptionCard({ transcription, onDownload, onGeneratePRD, onGenerateNotes, isAuthenticated = false, userTokens }: TranscriptionCardProps) {
   const [activeTab, setActiveTab] = useState<'transcription' | 'notes'>('transcription')
   const [isGeneratingPRD, setIsGeneratingPRD] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isGeneratingNotes, setIsGeneratingNotes] = useState(false)
 
   const getStatusIcon = () => {
     switch (transcription.status) {
@@ -55,6 +53,18 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
+  const formatProcessingDuration = (milliseconds?: number) => {
+    if (!milliseconds) return null
+    const seconds = Math.round(milliseconds / 1000)
+    if (seconds < 60) {
+      return `${seconds}s`
+    } else {
+      const minutes = Math.floor(seconds / 60)
+      const remainingSeconds = seconds % 60
+      return `${minutes}m ${remainingSeconds}s`
+    }
+  }
+
   const handleGeneratePRD = async () => {
     if (!onGeneratePRD) return
     
@@ -66,17 +76,18 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
     }
   }
 
-  const handleDelete = async () => {
-    if (!onDelete) return
+  const handleGenerateNotes = async () => {
+    if (!onGenerateNotes) return
     
-    setIsDeleting(true)
+    setIsGeneratingNotes(true)
     try {
-      await onDelete(transcription._id!.toString())
+      await onGenerateNotes(transcription._id!.toString())
     } finally {
-      setIsDeleting(false)
-      setShowDeleteConfirm(false)
+      setIsGeneratingNotes(false)
     }
   }
+
+
 
   return (
     <div 
@@ -116,6 +127,12 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
               {transcription.duration && (
                 <span className="text-sm text-gray-500">
                   Duration: {formatDuration(transcription.duration)}
+                </span>
+              )}
+              {(transcription.status === 'completed' || transcription.status === 'error') && 
+               transcription.processingDuration && (
+                <span className="text-sm text-gray-500">
+                  Processed in: {formatProcessingDuration(transcription.processingDuration)}
                 </span>
               )}
             </div>
@@ -197,20 +214,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
         
         {/* Actions and Thumbnail */}
         <div className="flex items-start space-x-3">
-          {/* Delete Button */}
-          <div className="flex-shrink-0">
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowDeleteConfirm(true)
-              }}
-              disabled={isDeleting}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Delete transcription"
-            >
-              <Trash2 className={`h-4 w-4 ${isDeleting ? 'animate-pulse' : ''}`} />
-            </button>
-          </div>
+
 
           {/* Video Thumbnail */}
           {transcription.thumbnail && (
@@ -293,10 +297,12 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                 hasTranscription={!!transcription.content}
                 hasNotes={!!transcription.notes}
                 hasPRD={!!transcription.prd}
+                hasAudio={!!transcription.audioFile}
                 onDownload={onDownload}
-                onGeneratePRD={onGeneratePRD || (() => {})}
-                onGenerateNotes={onGenerateNotes || (() => {})}
+                onGeneratePRD={handleGeneratePRD}
+                onGenerateNotes={handleGenerateNotes}
                 isGeneratingPRD={isGeneratingPRD}
+                isGeneratingNotes={isGeneratingNotes}
                 isAuthenticated={isAuthenticated}
                 userTokens={userTokens}
               />
@@ -347,14 +353,43 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     <p className="text-gray-500 mb-4">
                       You need tokens to generate AI notes. Purchase more tokens to continue.
                     </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.location.href = '/payment/buy-tokens'
+                      }}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      Buy Tokens
+                    </button>
                   </div>
                 ) : (
                   <div className="text-center py-8">
                     <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                     <h4 className="text-lg font-medium text-gray-700 mb-2">No Notes Generated</h4>
                     <p className="text-gray-500 mb-4">
-                      AI notes are not available for this transcription yet. Use the export menu to generate them.
+                      AI notes are not available for this transcription yet.
                     </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleGenerateNotes()
+                      }}
+                      disabled={isGeneratingNotes}
+                      className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGeneratingNotes ? (
+                        <>
+                          <RefreshCw className="h-5 w-5 animate-spin" />
+                          <span>Generating Notes...</span>
+                        </>
+                      ) : (
+                        <>
+                          <StickyNote className="h-5 w-5" />
+                          <span>Generate AI Notes (1 token)</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 )}
               </div>
@@ -367,45 +402,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
         Created: {new Date(transcription.createdAt).toLocaleString()}
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-red-100 rounded-full">
-                <Trash2 className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Delete Transcription</h3>
-                <p className="text-sm text-gray-600">This action cannot be undone</p>
-              </div>
-            </div>
-            
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to delete "<strong>{transcription.title || 'Untitled Audio'}</strong>"? 
-              This will permanently remove the transcription, notes, and any generated content.
-            </p>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={isDeleting}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2"
-              >
-                {isDeleting && <RefreshCw className="h-4 w-4 animate-spin" />}
-                <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }

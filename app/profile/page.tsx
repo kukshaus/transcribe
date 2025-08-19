@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Coins, User, ArrowLeft, CreditCard, Clock, FileText, ScrollText, Plus, Gift, UserCheck } from 'lucide-react'
 import Link from 'next/link'
+import { Coins, User, ArrowLeft, CreditCard, Clock, FileText, ScrollText, Plus, Gift, UserCheck } from 'lucide-react'
+import { optimizeGoogleImageUrl, getFallbackImageUrl } from '@/lib/image-utils'
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
@@ -20,6 +21,22 @@ export default function ProfilePage() {
     }
     
     if (session) {
+      console.log('Profile page session data:', {
+        user: session.user,
+        image: session.user?.image,
+        name: session.user?.name,
+        email: session.user?.email
+      })
+      
+      // Compare URLs between header and profile
+      if (session.user?.image) {
+        console.log('Profile image URLs:')
+        console.log('  Original:', session.user.image)
+        console.log('  Header (32px):', optimizeGoogleImageUrl(session.user.image, 32))
+        console.log('  Profile (160px):', optimizeGoogleImageUrl(session.user.image, 160))
+        console.log('  Fallback:', getFallbackImageUrl(session.user.image))
+      }
+      
       fetchUserTokens()
       fetchSpendingHistory()
     }
@@ -84,15 +101,31 @@ export default function ProfilePage() {
           <div className="flex items-center space-x-6">
             {session.user?.image ? (
               <img
-                src={session.user.image}
+                src={optimizeGoogleImageUrl(session.user.image, 160)}
                 alt={session.user.name || 'User'}
-                className="h-20 w-20 rounded-full border-4 border-white/20"
+                className="h-20 w-20 rounded-full border-4 border-white/20 object-cover"
+                onError={(e) => {
+                  console.warn('Failed to load user avatar on profile page:', session.user.image)
+                  console.warn('Current src:', e.currentTarget.src)
+                  // Try a higher quality fallback for profile page
+                  const fallbackUrl = optimizeGoogleImageUrl(session.user.image, 320)
+                  if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {
+                    console.log('Trying higher quality fallback on profile page:', fallbackUrl)
+                    e.currentTarget.src = fallbackUrl
+                  } else {
+                    console.log('Hiding broken image and showing fallback')
+                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                  }
+                }}
+                onLoad={() => {
+                  console.log('Profile avatar loaded successfully:', session.user.image)
+                }}
               />
-            ) : (
-              <div className="h-20 w-20 rounded-full bg-purple-600 flex items-center justify-center border-4 border-white/20">
-                <User className="h-10 w-10 text-white" />
-              </div>
-            )}
+            ) : null}
+            <div className={`h-20 w-20 rounded-full bg-purple-600 flex items-center justify-center border-4 border-white/20 ${session.user?.image ? 'hidden' : ''}`}>
+              <User className="h-10 w-10 text-white" />
+            </div>
             
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">

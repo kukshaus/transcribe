@@ -37,15 +37,6 @@ export const TOKEN_PACKAGES = [
     priceDisplay: '$18.00',
     popular: false,
   },
-  {
-    id: 'tokens_100',
-    name: '100 Tokens',
-    description: 'For heavy usage',
-    tokens: 100,
-    price: 3000, // $30.00 in cents
-    priceDisplay: '$30.00',
-    popular: false,
-  },
 ]
 
 export function getTokenPackageById(id: string) {

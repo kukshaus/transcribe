@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer className="bg-black/20 backdrop-blur-md border-t border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-3 gap-8">
           {/* Logo and Description */}
           <div className="md:col-span-2">
             <Logo size="sm" variant="light" showText={true} />
@@ -35,18 +35,6 @@ export default function Footer() {
             </div>
           </div>
           
-          {/* Features */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Features</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li>YouTube Transcription</li>
-              <li>Spotify Transcription</li>
-              <li>SoundCloud Support</li>
-              <li>AI-Powered Notes</li>
-              <li>Export Options</li>
-            </ul>
-          </div>
-          
           {/* Resources */}
           <div>
             <h3 className="text-white font-semibold mb-4">Resources</h3>
@@ -59,6 +47,11 @@ export default function Footer() {
               <li>
                 <a href="#features" className="hover:text-white transition-colors duration-200">
                   Features
+                </a>
+              </li>
+              <li>
+                <a href="/payment/buy-tokens" className="hover:text-white transition-colors duration-200">
+                  Pricing
                 </a>
               </li>
               <li>
@@ -78,7 +71,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
           <p className="text-gray-400 text-sm">
-            © 2024 TranscribeAI. All rights reserved.
+            © 2025 TranscribeAI. All rights reserved.
           </p>
           <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
             <span>Made with</span>

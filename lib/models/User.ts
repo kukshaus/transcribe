@@ -10,7 +10,9 @@ export interface User {
   freeTokensRemaining?: number // tracks remaining free tokens from initial grant or transfers
   hasReceivedInitialFreeTokens?: boolean // prevents duplicate initial free token grants
   hasReceivedAnonymousTransfer?: boolean // prevents duplicate anonymous token transfers
-  anonymousTransferFingerprint?: string // tracks which fingerprint was used for transfer
+  anonymousTransferFingerprint?: string // tracks which fingerprint was used for token transfer
+  hasReceivedAnonymousTranscriptions?: boolean // prevents duplicate anonymous transcription transfers
+  anonymousTranscriptionFingerprint?: string // tracks which fingerprint was used for transcription transfer
   createdAt: Date
   updatedAt: Date
 }
