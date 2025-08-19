@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:prod": "node scripts/setup-database.js && npm start",
+    "db:setup": "node scripts/setup-database.js",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "setup": "cross-env YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install && npm run type-check",

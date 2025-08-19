@@ -26,5 +26,9 @@ RUN npm run build
 # Expose port
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"]
+# Create start script that sets up database before starting the app
+RUN echo '#!/bin/sh\nnode scripts/setup-database.js\nnpm start' > /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Start the application with index setup
+CMD ["/app/start.sh"]
