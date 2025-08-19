@@ -1,7 +1,7 @@
 'use client'
 
 import Logo from './Logo'
-import { Github, Twitter, Heart } from 'lucide-react'
+import { Github, Twitter, Heart, CheckCircle } from 'lucide-react'
 import { getVersionString } from '@/lib/version'
 
 export default function Footer() {
@@ -75,6 +75,10 @@ export default function Footer() {
             <span className="text-gray-500 text-xs bg-gray-800 px-2 py-1 rounded">
               v{getVersionString()}
             </span>
+            <div className="flex items-center gap-2 text-green-400 text-sm">
+              <CheckCircle className="h-4 w-4" />
+              <span>All systems operational</span>
+            </div>
           </div>
           <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
             <span>Made with</span>
