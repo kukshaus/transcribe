@@ -46,13 +46,42 @@ export default function ProfilePage() {
     if (!session) return
     
     try {
+      console.log('[PROFILE_DEBUG] Fetching user tokens...')
       const response = await fetch('/api/user/tokens')
-      if (response.ok) {
-        const data = await response.json()
-        setUserTokens(data)
+      
+      console.log('[PROFILE_DEBUG] Response status:', response.status)
+      console.log('[PROFILE_DEBUG] Response headers:', Object.fromEntries(response.headers.entries()))
+      console.log('[PROFILE_DEBUG] Response content-type:', response.headers.get('content-type'))
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[PROFILE_DEBUG] Non-OK response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        })
+        return
       }
+      
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text()
+        console.error('[PROFILE_DEBUG] Response is not JSON:', {
+          contentType,
+          responseText: responseText.substring(0, 500) + (responseText.length > 500 ? '...' : '')
+        })
+        return
+      }
+      
+      const data = await response.json()
+      console.log('[PROFILE_DEBUG] Successfully parsed JSON:', data)
+      setUserTokens(data)
     } catch (error) {
-      console.error('Error fetching user tokens:', error)
+      console.error('[PROFILE_DEBUG] Error fetching user tokens:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      })
     } finally {
       setLoading(false)
     }
