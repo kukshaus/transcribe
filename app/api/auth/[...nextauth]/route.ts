@@ -118,8 +118,8 @@ const authOptions: NextAuthOptions = {
         } catch (error) {
           console.error('SignIn callback - Error ensuring user exists:', error)
           console.error('SignIn callback - Error details:', {
-            message: error?.message,
-            stack: error?.stack,
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
             email: user.email
           })
         }
