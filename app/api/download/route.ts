@@ -166,7 +166,7 @@ ${transcription.notes}
     if (transcription.title) {
       // Clean title for filename (remove invalid characters and Unicode)
       let cleanedTitle = transcription.title
-        .replace(/[\u{1F000}-\u{1F999}]/gu, '') // Remove emojis first
+        .replace(/[\uD83C-\uDBFF\uDC00-\uDFFF]+/g, '') // Remove emojis using surrogate pairs
         .replace(/[<>:"/\\|?*]/g, '') // Remove invalid filename characters  
         .replace(/[^\x00-\x7F]/g, '') // Remove remaining non-ASCII characters
         .replace(/[\s\-()[\]{}]+/g, '_') // Replace spaces, hyphens, and brackets with underscores
