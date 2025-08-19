@@ -7,6 +7,10 @@ export interface User {
   image?: string | null
   emailVerified?: Date | null
   tokens: number
+  freeTokensRemaining?: number // tracks remaining free tokens from initial grant or transfers
+  hasReceivedInitialFreeTokens?: boolean // prevents duplicate initial free token grants
+  hasReceivedAnonymousTransfer?: boolean // prevents duplicate anonymous token transfers
+  anonymousTransferFingerprint?: string // tracks which fingerprint was used for transfer
   createdAt: Date
   updatedAt: Date
 }
@@ -17,6 +21,9 @@ export interface AnonymousUser {
   ip: string
   userAgent: string
   transcriptionCount: number
+  transferredToUserId?: string // tracks if tokens were transferred to a user account
+  transferredAt?: Date // when the transfer happened
+  isTransferUsed?: boolean // prevents multiple transfers from same fingerprint
   createdAt: Date
   updatedAt: Date
 }

@@ -4,15 +4,11 @@ import { Transcription } from '@/lib/models/Transcription'
 import { ObjectId } from 'mongodb'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
+import { generateUserFingerprint } from '@/lib/fingerprint'
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
     const type = searchParams.get('type') as 'transcription' | 'notes' | 'notion' | 'prd'
@@ -32,13 +28,25 @@ export async function GET(request: NextRequest) {
     const db = await getDatabase()
     const transcriptionsCollection = db.collection<Transcription>('transcriptions')
 
-    const transcription = await transcriptionsCollection.findOne({ 
-      _id: new ObjectId(id),
-      userId: session.user.id
-    })
+    let transcription: Transcription | null = null
+
+    if (session?.user?.id) {
+      // For authenticated users, find by userId
+      transcription = await transcriptionsCollection.findOne({ 
+        _id: new ObjectId(id),
+        userId: session.user.id
+      })
+    } else {
+      // For anonymous users, find by fingerprint
+      const userFingerprint = generateUserFingerprint(request)
+      transcription = await transcriptionsCollection.findOne({ 
+        _id: new ObjectId(id),
+        userFingerprint: userFingerprint
+      })
+    }
 
     if (!transcription) {
-      return NextResponse.json({ error: 'Transcription not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Transcription not found or access denied' }, { status: 404 })
     }
 
     if (transcription.status !== 'completed') {

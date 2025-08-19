@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Coins, User, ArrowLeft, CreditCard, Clock, FileText, ScrollText, Plus, Gift } from 'lucide-react'
+import { Coins, User, ArrowLeft, CreditCard, Clock, FileText, ScrollText, Plus, Gift, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ProfilePage() {
@@ -191,6 +191,8 @@ export default function ProfilePage() {
                         <ScrollText className="h-4 w-4 text-purple-400" />
                       ) : item.action === 'free_tokens_granted' ? (
                         <Gift className="h-4 w-4 text-yellow-400" />
+                      ) : item.action === 'anonymous_tokens_transferred' ? (
+                        <UserCheck className="h-4 w-4 text-cyan-400" />
                       ) : item.action === 'token_purchase' ? (
                         <Plus className="h-4 w-4 text-green-400" />
                       ) : (
@@ -199,8 +201,13 @@ export default function ProfilePage() {
                     </div>
                     
                     <div>
-                      <div className="text-white font-medium">
-                        {item.description}
+                      <div className="text-white font-medium flex items-center space-x-2">
+                        <span>{item.description}</span>
+                        {item.isFreeTier && (
+                          <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full text-xs font-medium border border-yellow-400/30">
+                            FREE
+                          </span>
+                        )}
                       </div>
                       <div className="text-white/60 text-sm flex items-center space-x-2">
                         <Clock className="h-3 w-3" />

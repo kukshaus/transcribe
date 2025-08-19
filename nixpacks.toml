@@ -1,0 +1,14 @@
+[variables]
+NODE_VERSION = "18"
+
+[phases.setup]
+nixPkgs = ["nodejs", "npm", "python3", "pip", "ffmpeg", "yt-dlp"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"

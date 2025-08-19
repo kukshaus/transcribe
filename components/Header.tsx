@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
-import { User, LogOut } from 'lucide-react'
+import { useSession, signIn } from 'next-auth/react'
+import { User } from 'lucide-react'
+import SignOutButton from './SignOutButton'
 import Logo from './Logo'
 
 export default function Header() {
@@ -45,18 +46,14 @@ export default function Header() {
                   </span>
                 </Link>
                 
-                <button
-                  onClick={() => signOut()}
-                  className="flex items-center space-x-1 text-white/60 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
-                  title="Sign Out"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline text-sm">Sign Out</span>
-                </button>
+                <SignOutButton />
               </div>
             ) : (
               <button
-                onClick={() => signIn()}
+                onClick={() => signIn('google', { 
+                  callbackUrl: '/',
+                  prompt: 'select_account' 
+                })}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
               >
                 Sign In

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "setup": "npm install && npm run type-check"
+    "setup": "cross-env YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install && npm run type-check",
+    "postinstall": "echo YouTube DL setup complete"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",

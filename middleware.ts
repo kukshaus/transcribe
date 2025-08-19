@@ -17,17 +17,30 @@ export default withAuth(
           return true
         }
         
-        // Protect API routes that need authentication
-        if (req.nextUrl.pathname.startsWith('/api/download') ||
-            req.nextUrl.pathname.startsWith('/api/generate-prd') ||
-            req.nextUrl.pathname.startsWith('/api/generate-notes') ||
-            req.nextUrl.pathname.startsWith('/api/user/')) {
+        // Protect transcription detail pages - require authentication
+        if (req.nextUrl.pathname.startsWith('/transcriptions/')) {
           return !!token
         }
         
-        // Allow anonymous POST to transcriptions (with rate limiting in the handler)
-        // Allow anonymous GET to transcriptions (filtered by fingerprint)
+        // Protect API routes that need authentication
+        if (req.nextUrl.pathname.startsWith('/api/generate-prd') ||
+            req.nextUrl.pathname.startsWith('/api/generate-notes') ||
+            req.nextUrl.pathname.startsWith('/api/user/') ||
+            req.nextUrl.pathname.startsWith('/api/transcriptions/')) {
+          return !!token
+        }
         
+        // Allow anonymous access to download API (it handles auth internally)
+        if (req.nextUrl.pathname.startsWith('/api/download')) {
+          return true
+        }
+        
+        // Protect payment pages
+        if (req.nextUrl.pathname.startsWith('/payment/')) {
+          return !!token
+        }
+        
+        // Allow access to other pages
         return true
       },
     },
@@ -36,13 +49,13 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/api/download/:path*', 
     '/api/generate-prd/:path*',
     '/api/generate-notes/:path*',
     '/api/user/:path*',
+    '/api/transcriptions/:path*',
     '/transcriptions/:path*',
     '/api/stripe/checkout/:path*',
-    '/payment/buy-tokens/:path*',
-    '/payment/success/:path*'
+    '/payment/:path*',
+    '/profile/:path*'
   ]
 }

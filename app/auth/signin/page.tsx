@@ -58,7 +58,10 @@ export default function SignIn() {
               Object.values(providers).map((provider) => (
                 <div key={provider.name}>
                   <button
-                    onClick={() => signIn(provider.id, { callbackUrl: '/' })}
+                    onClick={() => signIn(provider.id, { 
+                      callbackUrl: '/',
+                      prompt: 'select_account'
+                    })}
                     className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-md shadow-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200"
                   >
                     {provider.name === 'Google' && (

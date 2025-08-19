@@ -32,8 +32,30 @@ export default function Home() {
     fetchUsageInfo()
     if (session) {
       fetchUserTokens()
+      // Try to transfer any anonymous tokens to the authenticated user
+      transferAnonymousTokens()
     }
   }, [session])
+
+  const transferAnonymousTokens = async () => {
+    try {
+      const response = await fetch('/api/auth/transfer-tokens', {
+        method: 'POST',
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.tokensTransferred > 0) {
+          success(`🎉 ${data.message}`)
+          // Refresh user tokens to show the updated count
+          fetchUserTokens()
+        }
+      }
+    } catch (error) {
+      console.error('Error transferring anonymous tokens:', error)
+      // Don't show error to user as this is a background operation
+    }
+  }
 
   const fetchUsageInfo = async () => {
     try {
