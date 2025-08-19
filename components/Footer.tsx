@@ -16,7 +16,7 @@ export default function Footer() {
               Transform audio content from any platform into searchable text and organized notes. 
               Free, fast, and no signup required.
             </p>
-            <div className="flex items-center justify-between mt-6">
+            <div className="flex items-center gap-6 mt-6">
               <a
                 href="https://github.com/kukshaus/transcribe"
                 target="_blank"
