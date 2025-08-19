@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import { getVersionInfo } from '@/lib/version'
 import { RefreshCw, Info, Server, Clock, Code } from 'lucide-react'
 
