@@ -134,8 +134,8 @@ export default function PricingPage() {
                   How does token usage work?
                 </h3>
                 <p className="text-gray-300">
-                  Each minute of audio/video content typically uses 100-150 tokens for transcription. 
-                  Additional features like AI notes generation use extra tokens based on content length.
+                  Simple and transparent: 1 token = 1 transcription, 1 token = 1 AI notes generation, 
+                  2 tokens = 1 PRD generation. Tokens are only consumed after successful completion.
                 </p>
               </div>
               
@@ -153,18 +153,18 @@ export default function PricingPage() {
                   What file formats are supported?
                 </h3>
                 <p className="text-gray-300">
-                  We support most audio and video formats including MP3, WAV, MP4, MOV, and many others. 
-                  You can also provide YouTube URLs for direct transcription.
+                  Upload audio/video files (MP3, WAV, MP4, MOV, etc.) or paste URLs from YouTube, SoundCloud, 
+                  Vimeo, and other platforms supported by yt-dlp for direct transcription.
                 </p>
               </div>
               
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
                 <h3 className="text-xl font-semibold text-white mb-3">
-                  Can I get a refund?
+                  What features do I get?
                 </h3>
                 <p className="text-gray-300">
-                  We offer refunds within 30 days of purchase if you haven't used any tokens. 
-                  Contact support for assistance with your refund request.
+                  Audio/video transcription, AI-generated notes and summaries, PRD generation, 
+                  export to multiple formats (text, markdown, Notion), and download capabilities.
                 </p>
               </div>
             </div>
