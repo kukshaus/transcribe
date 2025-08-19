@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         )
 
         // If the document was already there (not inserted), this is a duplicate webhook
-        if (!paymentRecord.lastErrorObject?.upserted) {
+        if (!paymentRecord || !paymentRecord.lastErrorObject?.upserted) {
           console.log(`Payment already processed for session ${session.id}, skipping duplicate webhook`)
           return NextResponse.json({ received: true, message: 'Already processed' })
         }
