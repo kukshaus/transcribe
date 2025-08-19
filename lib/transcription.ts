@@ -53,7 +53,7 @@ async function ensureYtDlpUpdated(): Promise<void> {
     await execAsync('yt-dlp --update', { timeout: 30000 })
     console.log('yt-dlp updated successfully')
   } catch (error) {
-    console.log('yt-dlp update failed or not needed:', error.message || error)
+    console.log('yt-dlp update failed or not needed:', error instanceof Error ? error.message : error)
     // Continue anyway - maybe it's already up to date or update is not available
   }
 }
@@ -132,7 +132,7 @@ export async function downloadAudio(url: string): Promise<string> {
             })
             break // Success, exit the loop
           } catch (error) {
-            console.log(`Format ${i + 1} failed:`, error.message || error)
+            console.log(`Format ${i + 1} failed:`, error instanceof Error ? error.message : error)
             lastError = error
             if (i === formatOptions.length - 1) {
               throw lastError // If all formats failed, throw the last error
@@ -160,7 +160,7 @@ export async function downloadAudio(url: string): Promise<string> {
         return selectedFile
       }
     } catch (error) {
-      const errorMessage = error.message || error.toString()
+      const errorMessage = error instanceof Error ? error.message : String(error)
       
       // Platform-specific error messages
       if (platform === 'youtube' || errorMessage.includes('youtube')) {
@@ -185,7 +185,7 @@ export async function downloadAudio(url: string): Promise<string> {
       }
     }
   } catch (error) {
-    const errorMessage = error.message || error.toString()
+    const errorMessage = error instanceof Error ? error.message : String(error)
     throw new Error(`Failed to download audio: ${errorMessage}`)
   }
 }

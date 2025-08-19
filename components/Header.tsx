@@ -44,7 +44,7 @@ export default function Header() {
                       className="h-8 w-8 rounded-full border-2 border-white/20 object-cover"
                       onError={(e) => {
                         console.warn('Failed to load user avatar:', session.user.image)
-                        const fallbackUrl = getFallbackImageUrl(session.user.image)
+                        const fallbackUrl = session.user.image ? getFallbackImageUrl(session.user.image) : null
                         if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {
                           console.log('Trying fallback image URL')
                           e.currentTarget.src = fallbackUrl

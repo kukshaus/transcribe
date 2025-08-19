@@ -108,7 +108,7 @@ export default function ProfilePage() {
                   console.warn('Failed to load user avatar on profile page:', session.user.image)
                   console.warn('Current src:', e.currentTarget.src)
                   // Try a higher quality fallback for profile page
-                  const fallbackUrl = optimizeGoogleImageUrl(session.user.image, 320)
+                  const fallbackUrl = session.user.image ? optimizeGoogleImageUrl(session.user.image, 320) : null
                   if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {
                     console.log('Trying higher quality fallback on profile page:', fallbackUrl)
                     e.currentTarget.src = fallbackUrl
