@@ -69,7 +69,7 @@ export default function ExportDropdown({
   const actions: ExportAction[] = [
     {
       id: 'transcription',
-      label: 'Download Transcription',
+      label: 'Download Transcription (.txt)',
       icon: <FileText className="h-4 w-4" />,
       description: 'Raw transcribed text',
       action: () => onDownload(transcriptionId, 'transcription'),
@@ -77,7 +77,7 @@ export default function ExportDropdown({
     },
     {
       id: 'audio',
-      label: 'Download Audio',
+      label: 'Download Audio (.mp3)',
       icon: <Music className="h-4 w-4" />,
       description: 'Original audio file',
       action: () => onDownload(transcriptionId, 'audio'),
@@ -85,7 +85,7 @@ export default function ExportDropdown({
     },
     {
       id: 'notes',
-      label: 'Download Notes',
+      label: 'Download Notes (.md)',
       icon: <Download className="h-4 w-4" />,
       description: isAuthenticated ? 'AI-generated structured notes' : 'Sign in required for AI notes',
       action: isAuthenticated ? () => onDownload(transcriptionId, 'notes') : () => window.location.href = '/auth/signin',
@@ -94,7 +94,7 @@ export default function ExportDropdown({
     },
     {
       id: 'notion',
-      label: 'Download for Notion',
+      label: 'Download for Notion (.md)',
       icon: <Database className="h-4 w-4" />,
       description: isAuthenticated ? 'Formatted for Notion import' : 'Sign in required for Notion export',
       action: isAuthenticated ? () => onDownload(transcriptionId, 'notion') : () => window.location.href = '/auth/signin',
@@ -132,7 +132,7 @@ export default function ExportDropdown({
     },
     {
       id: 'prd',
-      label: 'Download PRD',
+      label: 'Download PRD (.md)',
       icon: <FileText className="h-4 w-4" />,
       description: 'Product Requirements Document',
       action: () => onDownload(transcriptionId, 'prd'),
