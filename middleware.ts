@@ -3,10 +3,17 @@ import { withAuth } from 'next-auth/middleware'
 export default withAuth(
   function middleware(req) {
     // Add any additional middleware logic here
+    console.log('Middleware processing:', req.nextUrl.pathname, 'Token exists:', !!req.nextauth.token)
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
+        console.log('Middleware authorized callback:', {
+          path: req.nextUrl.pathname,
+          hasToken: !!token,
+          isApiRoute: req.nextUrl.pathname.startsWith('/api/')
+        })
+        
         // Allow access to auth pages without token
         if (req.nextUrl.pathname.startsWith('/auth/')) {
           return true
@@ -17,26 +24,25 @@ export default withAuth(
           return true
         }
         
+        // For API routes, ALWAYS allow access and let the API route handle authentication
+        // This prevents the middleware from returning HTML error pages for API calls
+        if (req.nextUrl.pathname.startsWith('/api/')) {
+          console.log('Allowing API route to handle its own authentication:', req.nextUrl.pathname)
+          return true
+        }
+        
         // Protect transcription detail pages - require authentication
         if (req.nextUrl.pathname.startsWith('/transcriptions/')) {
           return !!token
         }
         
-        // Protect API routes that need authentication
-        if (req.nextUrl.pathname.startsWith('/api/generate-prd') ||
-            req.nextUrl.pathname.startsWith('/api/generate-notes') ||
-            req.nextUrl.pathname.startsWith('/api/user/') ||
-            req.nextUrl.pathname.startsWith('/api/transcriptions/')) {
+        // Protect payment pages
+        if (req.nextUrl.pathname.startsWith('/payment/')) {
           return !!token
         }
         
-        // Allow anonymous access to download API (it handles auth internally)
-        if (req.nextUrl.pathname.startsWith('/api/download')) {
-          return true
-        }
-        
-        // Protect payment pages
-        if (req.nextUrl.pathname.startsWith('/payment/')) {
+        // Protect profile pages
+        if (req.nextUrl.pathname.startsWith('/profile')) {
           return !!token
         }
         

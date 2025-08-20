@@ -12,9 +12,46 @@ function debugLog(...args: any[]) {
   }
 }
 
+// Wrap the entire handler in a try-catch to prevent ANY HTML error pages
 export async function GET(request: NextRequest) {
   const requestId = Math.random().toString(36).substring(7)
   
+  try {
+    // Global error boundary - ensure we ALWAYS return JSON
+    const safeJsonResponse = (data: any, status: number = 200) => {
+      return NextResponse.json(data, {
+        status,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Request-ID': requestId,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+    }
+    
+    return await handleTokensRequest(request, requestId, safeJsonResponse)
+  } catch (globalError) {
+    console.error(`[TOKENS_API_GLOBAL_ERROR] Request ${requestId}:`, globalError)
+    
+    // Last resort error handler - ensure we NEVER return HTML
+    return NextResponse.json({ 
+      error: 'Critical server error',
+      timestamp: new Date().toISOString(),
+      requestId,
+      message: 'An unexpected error occurred'
+    }, { 
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-ID': requestId
+      }
+    })
+  }
+}
+
+async function handleTokensRequest(request: NextRequest, requestId: string, safeJsonResponse: Function) {
   try {
     debugLog(`Request ${requestId} - Starting token fetch`)
     debugLog(`Request ${requestId} - Request URL:`, request.url)
@@ -32,35 +69,23 @@ export async function GET(request: NextRequest) {
     
     if (!session?.user?.id) {
       debugLog(`Request ${requestId} - No authentication, returning 401`)
-      return NextResponse.json({ 
+      return safeJsonResponse({ 
         error: 'Authentication required',
         timestamp: new Date().toISOString(),
         requestId
-      }, { 
-        status: 401,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Request-ID': requestId
-        }
-      })
+      }, 401)
     }
 
     // Validate that userId is a valid ObjectId format
     const userId = session.user.id
     if (!userId || typeof userId !== 'string' || userId.length !== 24) {
       debugLog(`Request ${requestId} - Invalid user ID format:`, userId)
-      return NextResponse.json({ 
+      return safeJsonResponse({ 
         error: 'Invalid user session',
         timestamp: new Date().toISOString(),
         requestId,
         ...(DEBUG_MODE && { debug: { userId, userIdType: typeof userId, userIdLength: userId?.length } })
-      }, { 
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Request-ID': requestId
-        }
-      })
+      }, 400)
     }
 
     debugLog(`Request ${requestId} - Checking tokens for user:`, userId)
@@ -78,12 +103,7 @@ export async function GET(request: NextRequest) {
     
     debugLog(`Request ${requestId} - Returning success response:`, response)
 
-    return NextResponse.json(response, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Request-ID': requestId
-      }
-    })
+    return safeJsonResponse(response)
   } catch (error) {
     debugLog(`Request ${requestId} - Error occurred:`, {
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -93,7 +113,7 @@ export async function GET(request: NextRequest) {
     
     console.error(`[TOKENS_API_ERROR] Request ${requestId}:`, error)
     
-    return NextResponse.json({ 
+    return safeJsonResponse({ 
       error: 'Internal server error',
       timestamp: new Date().toISOString(),
       requestId,
@@ -103,12 +123,6 @@ export async function GET(request: NextRequest) {
           stack: error instanceof Error ? error.stack : undefined
         }
       })
-    }, { 
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Request-ID': requestId
-      }
-    })
+    }, 500)
   }
 }
