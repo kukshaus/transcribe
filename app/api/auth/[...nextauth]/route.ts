@@ -34,7 +34,15 @@ const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
+      console.log('JWT callback triggered:', { 
+        trigger, 
+        hasUser: !!user, 
+        userEmail: user?.email,
+        currentTokenUid: token.uid,
+        tokenKeys: Object.keys(token)
+      })
+      
       if (user && user.email) {
         // Get the user ID from our database
         try {
@@ -57,6 +65,8 @@ const authOptions: NextAuthOptions = {
           console.error('JWT callback - Error getting user from database:', error)
         }
       }
+      
+      console.log('JWT callback returning token with uid:', token.uid)
       return token
     },
     async session({ session, token }) {

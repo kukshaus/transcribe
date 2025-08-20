@@ -11,6 +11,7 @@ export default withAuth(
         console.log('Middleware authorized callback:', {
           path: req.nextUrl.pathname,
           hasToken: !!token,
+          tokenUid: token?.uid,
           isApiRoute: req.nextUrl.pathname.startsWith('/api/')
         })
         
@@ -31,19 +32,26 @@ export default withAuth(
           return true
         }
         
+        // For protected pages, check if we have a valid user ID in the token
+        // This is more robust than just checking if token exists
+        const hasValidAuth = !!(token && token.uid)
+        
         // Protect transcription detail pages - require authentication
         if (req.nextUrl.pathname.startsWith('/transcriptions/')) {
-          return !!token
+          console.log('Checking transcription auth:', { hasValidAuth, uid: token?.uid })
+          return hasValidAuth
         }
         
         // Protect payment pages
         if (req.nextUrl.pathname.startsWith('/payment/')) {
-          return !!token
+          console.log('Checking payment auth:', { hasValidAuth, uid: token?.uid })
+          return hasValidAuth
         }
         
         // Protect profile pages
         if (req.nextUrl.pathname.startsWith('/profile')) {
-          return !!token
+          console.log('Checking profile auth:', { hasValidAuth, uid: token?.uid })
+          return hasValidAuth
         }
         
         // Allow access to other pages
