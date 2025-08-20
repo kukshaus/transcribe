@@ -156,11 +156,11 @@ export default function PaymentSuccess() {
               </Link>
               
               <Link 
-                href="/payment/history"
+                href="/profile?scroll=history"
                 className="flex items-center justify-center w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-6 rounded-lg transition-colors border border-white/20"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                View Payment History
+                View Spending History
               </Link>
             </div>
           </>

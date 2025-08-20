@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Coins, User, ArrowLeft, CreditCard, Clock, FileText, ScrollText, Plus, Gift, UserCheck } from 'lucide-react'
 import { optimizeGoogleImageUrl, getFallbackImageUrl } from '@/lib/image-utils'
@@ -10,9 +10,11 @@ import { optimizeGoogleImageUrl, getFallbackImageUrl } from '@/lib/image-utils'
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [userTokens, setUserTokens] = useState<{tokens: number, hasTokens: boolean} | null>(null)
   const [spendingHistory, setSpendingHistory] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const tokenHistoryRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -41,6 +43,20 @@ export default function ProfilePage() {
       fetchSpendingHistory()
     }
   }, [session, status, router])
+
+  // Check if we should scroll to token history section
+  useEffect(() => {
+    const shouldScrollToHistory = searchParams.get('scroll') === 'history'
+    if (shouldScrollToHistory && tokenHistoryRef.current && !loading) {
+      // Small delay to ensure content is loaded
+      setTimeout(() => {
+        tokenHistoryRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
+      }, 100)
+    }
+  }, [searchParams, loading])
 
   const fetchUserTokens = async () => {
     if (!session) return
@@ -214,7 +230,6 @@ export default function ProfilePage() {
               <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                 <h3 className="text-white font-medium mb-2">Token Usage</h3>
                 <div className="text-white/80 text-sm space-y-1">
-                  <div>• Unlimited transcriptions included</div>
                   <div>• AI notes generation: 1 token per request</div>
                   <div>• PRD generation: 2 tokens per request</div>
                 </div>
@@ -233,7 +248,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Token History */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <div ref={tokenHistoryRef} className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6">Token History</h2>
           
           {spendingHistory.length > 0 ? (

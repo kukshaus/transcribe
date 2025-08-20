@@ -19,7 +19,8 @@ import {
   Globe,
   Play,
   Pause,
-  Trash2
+  Trash2,
+  ScrollText
 } from 'lucide-react'
 import { Transcription } from '@/lib/models/Transcription'
 import { marked } from 'marked'
@@ -33,7 +34,7 @@ export default function TranscriptionDetailPage() {
   const { toasts, removeToast, success, error } = useToast()
   const [transcription, setTranscription] = useState<Transcription | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'transcription' | 'notes'>('transcription')
+  const [activeTab, setActiveTab] = useState<'transcription' | 'notes' | 'prd'>('transcription')
   const [isGeneratingPRD, setIsGeneratingPRD] = useState(false)
   const [isGeneratingNotes, setIsGeneratingNotes] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -43,13 +44,13 @@ export default function TranscriptionDetailPage() {
   const [userTokens, setUserTokens] = useState<{tokens: number, hasTokens: boolean} | null>(null)
 
   useEffect(() => {
-    if (params.id && session) {
+    if (params.id && status === 'authenticated' && !transcription) {
       fetchTranscription(params.id as string)
       fetchUserTokens()
     } else if (status === 'unauthenticated') {
       router.push('/')
     }
-  }, [params.id, session, status])
+  }, [params.id, status, transcription])
 
   // Auto-refresh for pending/processing transcriptions
   useEffect(() => {
@@ -711,6 +712,19 @@ export default function TranscriptionDetailPage() {
                         >
                           Notes
                         </button>
+                        <button
+                          onClick={() => setActiveTab('prd')}
+                          className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                            activeTab === 'prd'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'text-gray-600 hover:text-gray-900'
+                          }`}
+                        >
+                          <span>PRD</span>
+                          {transcription.prd && (
+                            <span className="ml-1 inline-flex items-center justify-center w-2 h-2 bg-green-400 rounded-full"></span>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -821,6 +835,76 @@ export default function TranscriptionDetailPage() {
                               <span>View Pricing</span>
                             </button>
                           </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {activeTab === 'prd' && transcription.prd && (
+                      <div className="prose prose-sm max-w-none">
+                        <div 
+                          className="text-gray-800 leading-relaxed"
+                          dangerouslySetInnerHTML={{ 
+                            __html: marked(transcription.prd, { 
+                              breaks: true,
+                              gfm: true
+                            })
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    {activeTab === 'prd' && !transcription.prd && (
+                      <div className="text-center py-12">
+                        <div className="h-16 w-16 text-gray-300 mx-auto mb-4 flex items-center justify-center">
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        {!transcription.notes ? (
+                          <>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Notes Required First</h3>
+                            <p className="text-gray-600 mb-6">You need to generate AI notes before creating a PRD. Generate notes first, then return here to create a comprehensive Product Requirements Document.</p>
+                            <button
+                              onClick={() => setActiveTab('notes')}
+                              className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+                            >
+                              <span>Go to Notes Tab</span>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No PRD Generated</h3>
+                            <p className="text-gray-600 mb-6">AI-generated Product Requirements Document is not available for this transcription yet. Once you have notes, you can generate a comprehensive PRD.</p>
+                            
+                            {userTokens && userTokens.hasTokens ? (
+                              <button
+                                onClick={() => handleGeneratePRD(transcription._id!.toString())}
+                                disabled={isGeneratingPRD}
+                                className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isGeneratingPRD ? (
+                                  <>
+                                    <RefreshCw className="h-5 w-5 animate-spin" />
+                                    <span>Generating PRD...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Generate PRD (2 tokens)</span>
+                                  </>
+                                )}
+                              </button>
+                            ) : (
+                              <div className="text-center">
+                                <p className="text-gray-600 mb-4">You need tokens to generate PRDs.</p>
+                                <a
+                                  href="/pricing"
+                                  className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+                                >
+                                  <span>View Pricing</span>
+                                </a>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
