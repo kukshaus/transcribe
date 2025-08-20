@@ -32,25 +32,25 @@ export default withAuth(
           return true
         }
         
-        // For protected pages, check if we have a valid user ID in the token
-        // This is more robust than just checking if token exists
-        const hasValidAuth = !!(token && token.uid)
+        // For protected pages, check if we have ANY valid token
+        // The JWT callback might not have run yet to set uid, so we check multiple conditions
+        const hasValidAuth = !!(token && (token.uid || token.sub || token.email))
         
         // Protect transcription detail pages - require authentication
         if (req.nextUrl.pathname.startsWith('/transcriptions/')) {
-          console.log('Checking transcription auth:', { hasValidAuth, uid: token?.uid })
+          console.log('Checking transcription auth:', { hasValidAuth, uid: token?.uid, sub: token?.sub, email: token?.email })
           return hasValidAuth
         }
         
         // Protect payment pages
         if (req.nextUrl.pathname.startsWith('/payment/')) {
-          console.log('Checking payment auth:', { hasValidAuth, uid: token?.uid })
+          console.log('Checking payment auth:', { hasValidAuth, uid: token?.uid, sub: token?.sub, email: token?.email })
           return hasValidAuth
         }
         
         // Protect profile pages
         if (req.nextUrl.pathname.startsWith('/profile')) {
-          console.log('Checking profile auth:', { hasValidAuth, uid: token?.uid })
+          console.log('Checking profile auth:', { hasValidAuth, uid: token?.uid, sub: token?.sub, email: token?.email })
           return hasValidAuth
         }
         
