@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 - **Transcription Services**
-  - Support for YouTube, Vimeo, and direct file uploads
+  - Support for YouTube and direct file uploads
   - Automatic audio extraction from video URLs
   - Chunked processing for large files
   - Real-time progress updates

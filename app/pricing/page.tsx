@@ -221,7 +221,7 @@ export default function PricingPage() {
                 </h3>
                 <p className="text-gray-300">
                   Upload audio/video files (MP3, WAV, MP4, MOV, etc.) or paste URLs from YouTube, SoundCloud, 
-                  Vimeo, and other platforms supported by yt-dlp for direct transcription.
+                  and other platforms supported by yt-dlp for direct transcription.
                 </p>
               </div>
               

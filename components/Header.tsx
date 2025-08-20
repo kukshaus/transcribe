@@ -63,7 +63,7 @@ export default function Header() {
                   </span>
                 </Link>
                 
-                <SignOutButton />
+                <SignOutButton showText={false} />
               </div>
             ) : (
               <button

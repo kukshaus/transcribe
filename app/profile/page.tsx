@@ -264,7 +264,12 @@ export default function ProfilePage() {
                     
                     <div>
                       <div className="text-white font-medium flex items-center space-x-2">
-                        <span>{item.description}</span>
+                        <span>
+                          {item.action === 'transcription_creation' && item.transcriptionTitle 
+                            ? `Transcription creation for "${item.transcriptionTitle}"`
+                            : item.description
+                          }
+                        </span>
                         {item.isFreeTier && (
                           <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full text-xs font-medium border border-yellow-400/30">
                             FREE

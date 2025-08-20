@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, CheckCircle, XCircle, RefreshCw, FileText, StickyNote, ExternalLink } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, RefreshCw, FileText, StickyNote, ExternalLink, ScrollText } from 'lucide-react'
 import { Transcription } from '@/lib/models/Transcription'
 import { marked } from 'marked'
 import ExportDropdown from './ExportDropdown'
@@ -16,7 +16,7 @@ interface TranscriptionCardProps {
 }
 
 export default function TranscriptionCard({ transcription, onDownload, onGeneratePRD, onGenerateNotes, isAuthenticated = false, userTokens }: TranscriptionCardProps) {
-  const [activeTab, setActiveTab] = useState<'transcription' | 'notes'>('transcription')
+  const [activeTab, setActiveTab] = useState<'transcription' | 'notes' | 'prd'>('transcription')
   const [isGeneratingPRD, setIsGeneratingPRD] = useState(false)
   const [isGeneratingNotes, setIsGeneratingNotes] = useState(false)
 
@@ -219,26 +219,107 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     </div>
                   ) : (
                     <span>{transcription.progress.details}</span>
-                  )}
-                </div>
-              )}
-            </div>
+                                  )}
+              </div>
+            )}
+            {activeTab === 'prd' && (
+              <div>
+                {transcription.prd ? (
+                  <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-strong:text-gray-900">
+                    <div 
+                      className="text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ 
+                        __html: marked(transcription.prd, { 
+                          breaks: true,
+                          gfm: true
+                        })
+                      }}
+                    />
+                  </div>
+                ) : !isAuthenticated ? (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">AI PRD Generation Available with Sign In</h4>
+                    <p className="text-gray-500 mb-4">
+                      Get AI-generated Product Requirements Documents from your transcriptions. Sign in to unlock this feature.
+                    </p>
+                    <button
+                      onClick={() => window.location.href = '/auth/signin'}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      Sign In for AI Features
+                    </button>
+                  </div>
+                ) : !transcription.notes ? (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">Notes Required First</h4>
+                    <p className="text-gray-500 mb-4">
+                      You need to generate AI notes before creating a PRD. Generate notes first, then return here to create a comprehensive Product Requirements Document.
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveTab('notes')
+                      }}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      Go to Notes Tab
+                    </button>
+                  </div>
+                ) : userTokens && !userTokens.hasTokens ? (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Tokens Remaining</h4>
+                    <p className="text-gray-500 mb-4">
+                      You need tokens to generate PRDs. Purchase more tokens to continue creating Product Requirements Documents.
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.location.href = '/pricing'
+                      }}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      View Pricing
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">No PRD Generated</h4>
+                    <p className="text-gray-500 mb-4">
+                      AI-generated Product Requirements Document is not available for this transcription yet. Once you have notes, you can generate a comprehensive PRD.
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleGeneratePRD()
+                      }}
+                      disabled={isGeneratingPRD}
+                      className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Generate a comprehensive Product Requirements Document (PRD) from your AI-generated notes. This will create a structured document with goals, user stories, functional requirements, and more."
+                    >
+                      {isGeneratingPRD ? (
+                        <>
+                          <RefreshCw className="h-5 w-5 animate-spin" />
+                          <span>Generating PRD...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ScrollText className="h-5 w-5" />
+                          <span>Generate PRD (2 tokens)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           )}
 
-          {/* Completed Progress */}
-          {transcription.progress && transcription.status === 'completed' && (
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-green-700">
-                  ✓ {transcription.progress.currentStep}
-                </span>
-                <span className="text-green-600">100%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full w-full"></div>
-              </div>
-            </div>
-          )}
+
 
           {/* Error Progress */}
           {transcription.progress && transcription.status === 'error' && (
@@ -306,13 +387,12 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                   e.stopPropagation()
                   setActiveTab('transcription')
                 }}
-                className={`flex items-center justify-center space-x-2 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
                   activeTab === 'transcription'
                     ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <FileText className="h-4 w-4" />
                 <span>Transcription</span>
               </button>
               <button
@@ -320,15 +400,31 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                   e.stopPropagation()
                   setActiveTab('notes')
                 }}
-                className={`flex items-center justify-center space-x-2 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
                   activeTab === 'notes'
                     ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <StickyNote className="h-4 w-4" />
                 <span>Notes</span>
                 {transcription.notes && (
+                  <span className="ml-1 inline-flex items-center justify-center w-2 h-2 bg-green-400 rounded-full"></span>
+                )}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setActiveTab('prd')
+                }}
+                className={`flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                  activeTab === 'prd'
+                    ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+                title="Product Requirements Document (PRD) - Generate a comprehensive, structured document with goals, user stories, functional requirements, and success metrics from your AI notes"
+              >
+                <span>PRD</span>
+                {transcription.prd && (
                   <span className="ml-1 inline-flex items-center justify-center w-2 h-2 bg-green-400 rounded-full"></span>
                 )}
               </button>
@@ -377,7 +473,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     />
                   </div>
                 ) : !isAuthenticated ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-4">
                     <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                     <h4 className="text-lg font-medium text-gray-700 mb-2">AI Notes Available with Sign In</h4>
                     <p className="text-gray-500 mb-4">
@@ -391,7 +487,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     </button>
                   </div>
                 ) : userTokens && !userTokens.hasTokens ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-4">
                     <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                     <h4 className="text-lg font-medium text-gray-700 mb-2">No Tokens Remaining</h4>
                     <p className="text-gray-500 mb-4">
@@ -408,7 +504,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     </button>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
+                  <div className="text-center py-4">
                     <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                     <h4 className="text-lg font-medium text-gray-700 mb-2">No Notes Generated</h4>
                     <p className="text-gray-500 mb-4">
@@ -431,6 +527,100 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                         <>
                           <StickyNote className="h-5 w-5" />
                           <span>Generate AI Notes (1 token)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {activeTab === 'prd' && (
+              <div>
+                {transcription.prd ? (
+                  <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-strong:text-gray-900">
+                    <div 
+                      className="text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ 
+                        __html: marked(transcription.prd, { 
+                          breaks: true,
+                          gfm: true
+                        })
+                      }}
+                    />
+                  </div>
+                ) : !isAuthenticated ? (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">AI PRD Generation Available with Sign In</h4>
+                    <p className="text-gray-500 mb-4">
+                      Get AI-generated Product Requirements Documents from your transcriptions. Sign in to unlock this feature.
+                    </p>
+                    <button
+                      onClick={() => window.location.href = '/auth/signin'}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      Sign In for AI Features
+                    </button>
+                  </div>
+                ) : !transcription.notes ? (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">Notes Required First</h4>
+                    <p className="text-gray-500 mb-4">
+                      You need to generate AI notes before creating a PRD. Generate notes first, then return here to create a comprehensive Product Requirements Document.
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveTab('notes')
+                      }}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      Go to Notes Tab
+                    </button>
+                  </div>
+                ) : userTokens && !userTokens.hasTokens ? (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Tokens Remaining</h4>
+                    <p className="text-gray-500 mb-4">
+                      You need tokens to generate PRDs. Purchase more tokens to continue creating Product Requirements Documents.
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.location.href = '/pricing'
+                      }}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      View Pricing
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">No PRD Generated</h4>
+                    <p className="text-gray-500 mb-4">
+                      AI-generated Product Requirements Document is not available for this transcription yet. Once you have notes, you can generate a comprehensive PRD.
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleGeneratePRD()
+                      }}
+                      disabled={isGeneratingPRD}
+                      className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Generate a comprehensive Product Requirements Document (PRD) from your AI-generated notes. This will create a structured document with goals, user stories, functional requirements, and more."
+                    >
+                      {isGeneratingPRD ? (
+                        <>
+                          <RefreshCw className="h-5 w-5 animate-spin" />
+                          <span>Generating PRD...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ScrollText className="h-5 w-5" />
+                          <span>Generate PRD (2 tokens)</span>
                         </>
                       )}
                     </button>

@@ -109,7 +109,7 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <div className="flex flex-col md:flex-row gap-4 items-stretch">
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <input
             type="url"
             id="url"
@@ -123,6 +123,23 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
             }`}
             disabled={isLoading}
           />
+          {url && (
+            <button
+              type="button"
+              onClick={() => {
+                setUrl('')
+                setMetadata(null)
+                setMetadataError(null)
+                setIsValidUrl(false)
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 rounded-full transition-all duration-200"
+              title="Clear URL"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
           {url && !isValidUrl && (
             <p className="mt-2 text-sm text-red-300">
               Please enter a valid URL from YouTube or SoundCloud.

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import UrlInput from '@/components/UrlInput'
 import TranscriptionCard from '@/components/TranscriptionCard'
@@ -24,6 +24,7 @@ export default function Home() {
   const [usageInfo, setUsageInfo] = useState<{canUse: boolean, remainingUses: number, limit: number} | null>(null)
   const [userTokens, setUserTokens] = useState<{tokens: number, hasTokens: boolean} | null>(null)
   const { toasts, removeToast, success, error, warning } = useToast()
+  const transcriptionsRef = useRef<HTMLElement>(null)
 
   // Fetch transcriptions and usage info
   useEffect(() => {
@@ -136,6 +137,14 @@ export default function Home() {
         await fetchUsageInfo() // Update usage info
         if (session) {
           await fetchUserTokens() // Update token count if authenticated
+        }
+        
+        // Scroll to transcriptions section to show the new transcription immediately
+        if (transcriptionsRef.current) {
+          transcriptionsRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          })
         }
       } else {
         const errorData = await response.json()
@@ -497,7 +506,7 @@ export default function Home() {
                     </div>
                     <div className="text-left">
                       <h4 className="text-white font-semibold mb-2 text-lg">Copy the Audio URL</h4>
-                      <p className="text-gray-300">Copy the URL from YouTube, SoundCloud, Vimeo, or any supported platform</p>
+                      <p className="text-gray-300">Copy the URL from YouTube, SoundCloud, or any supported platform</p>
                     </div>
                   </div>
                   
@@ -529,7 +538,7 @@ export default function Home() {
 
       {/* Transcriptions Section */}
       {transcriptions.length > 0 && (
-        <section id="transcriptions" className="bg-gray-50 min-h-screen py-16">
+        <section ref={transcriptionsRef} id="transcriptions" className="bg-gray-50 min-h-screen py-16">
           <div className="max-w-4xl mx-auto px-4">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900">

@@ -107,7 +107,7 @@ pip install yt-dlp
 
 - ✅ **YouTube** (youtube.com, youtu.be) - Fully supported
 - ✅ **SoundCloud** (soundcloud.com) - Supported
-- ✅ **Vimeo** (vimeo.com) - Supported
+
 - 🔄 **Other platforms** - May work if supported by yt-dlp
 
 ## API Endpoints

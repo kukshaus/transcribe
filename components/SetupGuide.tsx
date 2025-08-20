@@ -109,7 +109,7 @@ export default function SetupGuide({ onClose }: SetupGuideProps) {
               Setup Complete!
             </h3>
             <p className="text-gray-600">
-              You can now transcribe audio from YouTube, SoundCloud, Vimeo, and other platforms.
+              You can now transcribe audio from YouTube, SoundCloud, and other platforms.
             </p>
           </div>
           
@@ -119,7 +119,7 @@ export default function SetupGuide({ onClose }: SetupGuideProps) {
               <div>• YouTube</div>
 
               <div>• SoundCloud</div>
-              <div>• Vimeo</div>
+              
               <div>• And many more...</div>
             </div>
           </div>
