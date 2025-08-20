@@ -126,9 +126,9 @@ export default function PricingPage() {
                   
                   <div className="text-sm text-gray-400 mb-6">
                     <div>${(pkg.price / 100 / pkg.tokens * 1000).toFixed(2)} per 1,000 tokens</div>
-                    {pkg.tokens >= 10000 && (
+                    {pkg.id !== 'tokens_10' && (
                       <div className="text-green-400 font-medium mt-1">
-                        Save {Math.round((1 - (pkg.price / 100 / pkg.tokens) / (TOKEN_PACKAGES[0].price / 100 / TOKEN_PACKAGES[0].tokens)) * 100)}%
+                        Save {Math.round((1 - (pkg.price / 100 / pkg.tokens) / (TOKEN_PACKAGES[0].price / 100 / TOKEN_PACKAGES[0].tokens)) * 100)}% vs Starter
                       </div>
                     )}
                   </div>
