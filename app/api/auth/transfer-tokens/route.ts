@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     
     if (initialTokensGranted > 0) {
       totalTokensGranted += initialTokensGranted
-      messages.push(`Welcome! ${initialTokensGranted} free tokens granted`)
+      messages.push(`Signup gift: ${initialTokensGranted} tokens on us!`)
     }
     
     // Then, try to transfer any remaining anonymous usage

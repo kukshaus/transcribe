@@ -269,7 +269,7 @@ export default function ProfilePage() {
                       ) : item.action === 'free_tokens_granted' ? (
                         <Gift className="h-4 w-4 text-yellow-400" />
                       ) : item.action === 'anonymous_tokens_transferred' ? (
-                        <UserCheck className="h-4 w-4 text-cyan-400" />
+                        <Gift className="h-4 w-4 text-cyan-400" />
                       ) : item.action === 'token_purchase' ? (
                         <Plus className="h-4 w-4 text-green-400" />
                       ) : (
