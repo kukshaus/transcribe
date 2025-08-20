@@ -8,6 +8,7 @@ import { TOKEN_PACKAGES } from '@/lib/stripe'
 import { CheckCircle, Star, ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Header from '@/components/Header'
+import Image from 'next/image'
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -80,6 +81,8 @@ export default function PricingPage() {
               Back to Home
             </Link>
             
+
+            
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
               Simple, Transparent Pricing
             </h1>
@@ -111,6 +114,11 @@ export default function PricingPage() {
 
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-white mb-2">{pkg.name}</h3>
+                  <p className="text-sm text-purple-300 mb-3 font-medium">
+                    {pkg.id === 'tokens_10' && 'Starter Pack'}
+                    {pkg.id === 'tokens_25' && 'Professional Pack'}
+                    {pkg.id === 'tokens_50' && 'Enterprise Pack'}
+                  </p>
                   <div className="text-4xl font-bold text-white mb-1">
                     ${(pkg.price / 100).toFixed(0)}
                   </div>
@@ -146,6 +154,14 @@ export default function PricingPage() {
                   <div className="flex items-center text-gray-300">
                     <CheckCircle className="h-5 w-5 text-green-400 mr-3 flex-shrink-0" />
                     <span>No expiration date</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3 flex-shrink-0" />
+                    <span>High accuracy AI models</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3 flex-shrink-0" />
+                    <span>24/7 processing</span>
                   </div>
                 </div>
 

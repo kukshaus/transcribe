@@ -13,27 +13,27 @@ export const TOKEN_PACKAGES = [
   {
     id: 'tokens_10',
     name: '10 Tokens',
-    description: 'Perfect for getting started',
+    description: 'Perfect for getting started with transcription. Great for short meetings, interviews, or quick audio notes.',
     tokens: 10,
-    price: 100, // $0.01 in cents (reduced for testing)
+    price: 100, // $1.00 in cents (reduced for testing)
     priceDisplay: '$1.00',
     popular: false,
   },
   {
     id: 'tokens_25',
     name: '25 Tokens',
-    description: 'Great for regular users',
+    description: 'Ideal for regular users. Handle weekly meetings, podcasts, and multiple audio files with ease.',
     tokens: 25,
-    price: 100, // $0.01 in cents (reduced for testing)
+    price: 100, // $1.00 in cents (reduced for testing)
     priceDisplay: '$1.00',
     popular: true,
   },
   {
     id: 'tokens_50',
     name: '50 Tokens',
-    description: 'Best value for power users',
+    description: 'Best value for power users. Perfect for content creators, researchers, and heavy transcription needs.',
     tokens: 50,
-    price: 100, // $0.01 in cents (reduced for testing)
+    price: 100, // $1.00 in cents (reduced for testing)
     priceDisplay: '$1.00',
     popular: false,
   },
