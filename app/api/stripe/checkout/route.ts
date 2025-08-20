@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             product_data: {
               name: tokenPackage.name,
               description: tokenPackage.description,
-              images: [`${process.env.NEXT_PUBLIC_BASE_URL}/favicon.svg`],
+              images: [`${process.env.NEXT_PUBLIC_BASE_URL}/transcribeai-logo.png`],
             },
             unit_amount: tokenPackage.price,
           },

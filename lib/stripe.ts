@@ -15,8 +15,8 @@ export const TOKEN_PACKAGES = [
     name: '10 Tokens',
     description: 'Perfect for getting started',
     tokens: 10,
-    price: 500, // $5.00 in cents
-    priceDisplay: '$5.00',
+    price: 100, // $0.01 in cents (reduced for testing)
+    priceDisplay: '$1.00',
     popular: false,
   },
   {
@@ -24,8 +24,8 @@ export const TOKEN_PACKAGES = [
     name: '25 Tokens',
     description: 'Great for regular users',
     tokens: 25,
-    price: 1000, // $10.00 in cents
-    priceDisplay: '$10.00',
+    price: 100, // $0.01 in cents (reduced for testing)
+    priceDisplay: '$1.00',
     popular: true,
   },
   {
@@ -33,8 +33,8 @@ export const TOKEN_PACKAGES = [
     name: '50 Tokens',
     description: 'Best value for power users',
     tokens: 50,
-    price: 1800, // $18.00 in cents
-    priceDisplay: '$18.00',
+    price: 100, // $0.01 in cents (reduced for testing)
+    priceDisplay: '$1.00',
     popular: false,
   },
 ]
