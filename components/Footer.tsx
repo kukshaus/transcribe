@@ -2,7 +2,6 @@
 
 import Logo from './Logo'
 import { Github, Heart, CheckCircle } from 'lucide-react'
-import { getVersionString } from '@/lib/version'
 
 export default function Footer() {
   return (
@@ -73,9 +72,7 @@ export default function Footer() {
             <p className="text-gray-400 text-sm">
               © 2025 TranscribeAI. All rights reserved.
             </p>
-            <span className="text-gray-500 text-xs bg-gray-800 px-2 py-1 rounded">
-              v{getVersionString()}
-            </span>
+
           </div>
           <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
             <span>Made with</span>
