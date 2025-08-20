@@ -45,9 +45,27 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    debugLog(`Request ${requestId} - Checking tokens for user:`, session.user.id)
+    // Validate that userId is a valid ObjectId format
+    const userId = session.user.id
+    if (!userId || typeof userId !== 'string' || userId.length !== 24) {
+      debugLog(`Request ${requestId} - Invalid user ID format:`, userId)
+      return NextResponse.json({ 
+        error: 'Invalid user session',
+        timestamp: new Date().toISOString(),
+        requestId,
+        ...(DEBUG_MODE && { debug: { userId, userIdType: typeof userId, userIdLength: userId?.length } })
+      }, { 
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Request-ID': requestId
+        }
+      })
+    }
+
+    debugLog(`Request ${requestId} - Checking tokens for user:`, userId)
     
-    const tokenResult = await checkUserTokens(session.user.id)
+    const tokenResult = await checkUserTokens(userId)
     
     debugLog(`Request ${requestId} - Token check result:`, tokenResult)
     

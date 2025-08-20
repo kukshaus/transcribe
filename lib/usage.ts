@@ -73,26 +73,49 @@ export async function checkUserTokens(userId: string): Promise<{
   hasTokens: boolean
   tokenCount: number
 }> {
-  const db = await getDatabase()
-  const usersCollection = db.collection<User>('users')
-  
-  console.log('=== CHECK USER TOKENS DEBUG ===')
-  console.log('Looking for user with ID:', userId)
-  console.log('ObjectId conversion:', new ObjectId(userId))
-  
-  const user = await usersCollection.findOne({ _id: new ObjectId(userId) })
-  
-  console.log('User found:', user)
-  console.log('User tokens:', user?.tokens)
-  console.log('=== END CHECK USER TOKENS DEBUG ===')
-  
-  if (!user) {
+  try {
+    console.log('=== CHECK USER TOKENS DEBUG ===')
+    console.log('Looking for user with ID:', userId)
+    console.log('User ID type:', typeof userId)
+    console.log('User ID length:', userId?.length)
+    
+    // Validate ObjectId format before attempting conversion
+    if (!userId || typeof userId !== 'string' || userId.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(userId)) {
+      console.log('Invalid ObjectId format:', userId)
+      console.log('=== END CHECK USER TOKENS DEBUG (INVALID ID) ===')
+      return { hasTokens: false, tokenCount: 0 }
+    }
+    
+    const db = await getDatabase()
+    const usersCollection = db.collection<User>('users')
+    
+    const objectId = new ObjectId(userId)
+    console.log('ObjectId conversion successful:', objectId)
+    
+    const user = await usersCollection.findOne({ _id: objectId })
+    
+    console.log('User found:', !!user)
+    console.log('User tokens:', user?.tokens)
+    console.log('=== END CHECK USER TOKENS DEBUG ===')
+    
+    if (!user) {
+      return { hasTokens: false, tokenCount: 0 }
+    }
+    
+    return {
+      hasTokens: (user.tokens || 0) > 0,
+      tokenCount: user.tokens || 0
+    }
+  } catch (error) {
+    console.error('=== CHECK USER TOKENS ERROR ===')
+    console.error('Error checking user tokens:', error)
+    console.error('User ID that caused error:', userId)
+    console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error)
+    console.error('Error message:', error instanceof Error ? error.message : String(error))
+    console.error('=== END CHECK USER TOKENS ERROR ===')
+    
+    // Return safe defaults instead of throwing
     return { hasTokens: false, tokenCount: 0 }
-  }
-  
-  return {
-    hasTokens: user.tokens > 0,
-    tokenCount: user.tokens || 0
   }
 }
 
