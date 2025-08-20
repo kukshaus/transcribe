@@ -65,6 +65,19 @@ export async function POST(request: NextRequest) {
         packageId: tokenPackage.id,
         tokens: tokenPackage.tokens.toString(),
       },
+      // Customize the checkout page appearance
+      custom_text: {
+        submit: {
+          message: 'Thank you for choosing TranscribeAI! Your tokens will be available immediately after payment.',
+        },
+        shipping_address: {
+          message: 'Your billing address will be used for payment verification.',
+        },
+      },
+      // Add custom header
+      payment_intent_data: {
+        description: `TranscribeAI - ${tokenPackage.name}`,
+      },
     })
 
     return NextResponse.json({ 
