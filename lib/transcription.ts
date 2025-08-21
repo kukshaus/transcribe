@@ -466,14 +466,39 @@ export async function transcribeAudio(audioPath: string, progressCallback?: (cur
   }
 }
 
+// Rough estimate of tokens - approximately 4 characters per token for most text
+function estimateTokenCount(text: string): number {
+  return Math.ceil(text.length / 4)
+}
+
+// Split text into chunks that fit within token limits
+function chunkTranscription(transcription: string, maxTokensPerChunk: number = 12000): string[] {
+  const sentences = transcription.split(/[.!?]+/).filter(s => s.trim().length > 0)
+  const chunks: string[] = []
+  let currentChunk = ''
+  
+  for (const sentence of sentences) {
+    const sentenceWithPunctuation = sentence.trim() + '.'
+    const potentialChunk = currentChunk + (currentChunk ? ' ' : '') + sentenceWithPunctuation
+    
+    if (estimateTokenCount(potentialChunk) > maxTokensPerChunk && currentChunk) {
+      chunks.push(currentChunk.trim())
+      currentChunk = sentenceWithPunctuation
+    } else {
+      currentChunk = potentialChunk
+    }
+  }
+  
+  if (currentChunk.trim()) {
+    chunks.push(currentChunk.trim())
+  }
+  
+  return chunks
+}
+
 export async function generateNotes(transcription: string): Promise<string> {
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert note-taker that creates comprehensive video/audio summaries. Your notes should be:
+    const systemPrompt = `You are an expert note-taker that creates comprehensive video/audio summaries. Your notes should be:
 
 1. **Well-structured** with clear sections and headings
 2. **Comprehensive** - capture the full essence of the content
@@ -488,20 +513,128 @@ Format your response with:
 - **Notable Quotes** (if any particularly impactful statements)
 
 Use markdown formatting for better readability.`
-        },
-        {
-          role: 'user',
-          content: `Please create comprehensive structured notes from this video/audio transcription. Focus on the main content, key insights, and important takeaways:
+
+    // Estimate total tokens for the transcription
+    const transcriptionTokens = estimateTokenCount(transcription)
+    const systemTokens = estimateTokenCount(systemPrompt)
+    const overhead = 500 // Buffer for prompt formatting and response
+    const maxResponseTokens = 3000
+    
+    // GPT-3.5-turbo has a 16K context window, leave room for response and overhead
+    const maxInputTokens = 16385 - maxResponseTokens - overhead
+    
+    console.log(`Transcription estimated tokens: ${transcriptionTokens}`)
+    console.log(`Available tokens for input: ${maxInputTokens}`)
+    
+    // If the transcription is small enough, process it directly
+    if (systemTokens + transcriptionTokens <= maxInputTokens) {
+      console.log('Processing transcription in single request')
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: `Please create comprehensive structured notes from this video/audio transcription. Focus on the main content, key insights, and important takeaways:
 
 ${transcription}`
-        }
-      ],
-      max_tokens: 3000,
-      temperature: 0.2,
-    })
+          }
+        ],
+        max_tokens: maxResponseTokens,
+        temperature: 0.2,
+      })
 
-    return completion.choices[0]?.message?.content || 'No notes generated'
+      return completion.choices[0]?.message?.content || 'No notes generated'
+    }
+    
+    // For large transcriptions, process in chunks
+    console.log('Transcription too large, processing in chunks')
+    const maxChunkTokens = maxInputTokens - systemTokens - 200 // Leave room for user prompt text
+    const chunks = chunkTranscription(transcription, maxChunkTokens)
+    
+    console.log(`Split into ${chunks.length} chunks`)
+    
+    const chunkNotes: string[] = []
+    
+    // Process each chunk
+    for (let i = 0; i < chunks.length; i++) {
+      console.log(`Processing chunk ${i + 1}/${chunks.length}`)
+      
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert note-taker. Create focused notes from this PART of a longer transcription. 
+            
+This is chunk ${i + 1} of ${chunks.length}. Focus on:
+- Key points and insights from this section
+- Important details and facts
+- Notable quotes or statements
+- Actionable takeaways
+
+Use markdown formatting. Be concise but comprehensive for this section.`
+          },
+          {
+            role: 'user',
+            content: `Create notes from this section of the transcription:
+
+${chunks[i]}`
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.2,
+      })
+      
+      const chunkNote = completion.choices[0]?.message?.content
+      if (chunkNote) {
+        chunkNotes.push(`## Section ${i + 1}\n\n${chunkNote}`)
+      }
+    }
+    
+    // If we have multiple chunks, create a final summary
+    if (chunks.length > 1) {
+      console.log('Creating final consolidated summary')
+      
+      const consolidatedNotes = chunkNotes.join('\n\n---\n\n')
+      
+      // Create a final executive summary
+      const finalCompletion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: `You are synthesizing notes from multiple sections of a video/audio transcription. Create a final, well-structured document with:
+
+1. **Executive Summary** - Overall overview of the entire content
+2. **Key Themes** - Main topics covered across all sections  
+3. **Important Insights** - Most significant takeaways
+4. **Action Items** - What viewers should remember or do
+
+Then include the detailed section notes below. Use markdown formatting.`
+          },
+          {
+            role: 'user',
+            content: `Create a comprehensive summary and consolidate these section notes:
+
+${consolidatedNotes}`
+          }
+        ],
+        max_tokens: maxResponseTokens,
+        temperature: 0.2,
+      })
+      
+      const executiveSummary = finalCompletion.choices[0]?.message?.content || ''
+      return `${executiveSummary}\n\n---\n\n# Detailed Section Notes\n\n${consolidatedNotes}`
+    }
+    
+    return chunkNotes[0] || 'No notes generated'
+    
   } catch (error) {
+    console.error('Error in generateNotes:', error)
     throw new Error(`Failed to generate notes: ${error}`)
   }
 }

@@ -109,6 +109,12 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    if (error.message?.includes('maximum context length') || error.message?.includes('tokens')) {
+      return NextResponse.json({ 
+        error: 'The transcription is too long for processing. This should now be automatically handled. Please try again.' 
+      }, { status: 500 })
+    }
+
     return NextResponse.json({ 
       error: 'Failed to generate notes. Please try again.' 
     }, { status: 500 })
