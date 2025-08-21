@@ -114,26 +114,94 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
+    const { searchParams } = new URL(request.url)
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+    const limit = Math.min(50, Math.max(10, parseInt(searchParams.get('limit') || '20'))) // Default 20, max 50
+    const skip = (page - 1) * limit
+
     const db = await getDatabase()
     const transcriptionsCollection = db.collection<Transcription>('transcriptions')
 
-    let transcriptions: Transcription[]
+    let transcriptions: any[] // Use any[] for projected results since they're partial
+    let total: number
 
     if (session?.user?.id) {
-      // Authenticated user - get their transcriptions
-      transcriptions = await transcriptionsCollection
-        .find({ userId: session.user.id })
-        .sort({ createdAt: -1 })
-        .limit(50)
-        .toArray()
+      // Authenticated user - get their transcriptions (exclude large audioFile.data)
+      const [transcriptionsResult, totalCount] = await Promise.all([
+        transcriptionsCollection
+          .find({ userId: session.user.id })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .project({
+            _id: 1,
+            url: 1,
+            title: 1,
+            status: 1,
+            content: 1,
+            notes: 1,
+            prd: 1,
+            userId: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            duration: 1,
+            processingDuration: 1,
+            error: 1,
+            thumbnail: 1,
+            progress: 1,
+            // Include audioFile metadata but not the actual data (which is now in GridFS)
+            audioFile: {
+              filename: 1,
+              mimeType: 1,
+              size: 1,
+              storageType: 1,
+              gridfsId: 1
+            }
+          })
+          .toArray(),
+        transcriptionsCollection.countDocuments({ userId: session.user.id })
+      ])
+      transcriptions = transcriptionsResult
+      total = totalCount
     } else {
-      // Anonymous user - get their transcriptions by fingerprint
+      // Anonymous user - get their transcriptions by fingerprint (exclude large audioFile.data)
       const fingerprint = generateUserFingerprint(request)
-      transcriptions = await transcriptionsCollection
-        .find({ userFingerprint: fingerprint })
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .toArray()
+      const [transcriptionsResult, totalCount] = await Promise.all([
+        transcriptionsCollection
+          .find({ userFingerprint: fingerprint })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .project({
+            _id: 1,
+            url: 1,
+            title: 1,
+            status: 1,
+            content: 1,
+            notes: 1,
+            prd: 1,
+            userFingerprint: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            duration: 1,
+            processingDuration: 1,
+            error: 1,
+            thumbnail: 1,
+            progress: 1,
+            // Include audioFile metadata but not the actual data (which is now in GridFS)
+            audioFile: {
+              filename: 1,
+              mimeType: 1,
+              size: 1,
+              storageType: 1,
+              gridfsId: 1
+            }
+          })
+          .toArray(),
+        transcriptionsCollection.countDocuments({ userFingerprint: fingerprint })
+      ])
+      transcriptions = transcriptionsResult
+      total = totalCount
     }
 
     // Convert ObjectId to string for each transcription
@@ -142,7 +210,20 @@ export async function GET(request: NextRequest) {
       _id: t._id?.toString(),
     }))
 
-    return NextResponse.json(serializedTranscriptions, {
+    const hasMore = skip + transcriptions.length < total
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
+      transcriptions: serializedTranscriptions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasMore,
+        hasPrevious: page > 1
+      }
+    }, {
       headers: {
         'Content-Type': 'application/json; charset=utf-8'
       }

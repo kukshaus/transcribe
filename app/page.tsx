@@ -101,19 +101,31 @@ export default function Home() {
       const response = await fetch('/api/transcriptions')
       if (response.ok) {
         const data = await response.json()
-        setTranscriptions(data)
         
-        // Check for FFmpeg errors
-        const hasFFmpegIssue = data.some((t: Transcription) => 
-          t.error && t.error.includes('FFmpeg')
-        )
-        setHasFFmpegError(hasFFmpegIssue)
+        // Handle the new API response structure
+        if (data.transcriptions && Array.isArray(data.transcriptions)) {
+          setTranscriptions(data.transcriptions)
+          
+          // Check for FFmpeg errors
+          const hasFFmpegIssue = data.transcriptions.some((t: Transcription) => 
+            t.error && t.error.includes('FFmpeg')
+          )
+          setHasFFmpegError(hasFFmpegIssue)
+        } else {
+          // Fallback for old API structure or error
+          console.error('Unexpected API response format:', data)
+          setTranscriptions([])
+        }
       } else if (response.status === 401) {
         // Handle authentication error for authenticated endpoints
+        setTranscriptions([])
+      } else {
+        console.error('API error:', response.status, response.statusText)
         setTranscriptions([])
       }
     } catch (error) {
       console.error('Error fetching transcriptions:', error)
+      setTranscriptions([])
     } finally {
       setIsRefreshing(false)
     }

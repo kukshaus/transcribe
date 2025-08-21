@@ -547,17 +547,11 @@ export async function saveAudioFileToDatabase(transcriptionId: string, audioPath
     
     const db = await getDatabase()
     
-    // For large files (>15MB), use GridFS
-    // For smaller files, use regular document storage for better performance
-    const MAX_DOCUMENT_SIZE_MB = 15
-    
-    if (fileSizeMB > MAX_DOCUMENT_SIZE_MB) {
-      console.log(`Using GridFS for large audio file: ${filename} (${fileSizeMB.toFixed(2)} MB)`)
-      await saveAudioFileWithGridFS(db, transcriptionId, audioPath, filename, mimeType, stats.size)
-    } else {
-      console.log(`Using document storage for audio file: ${filename} (${fileSizeMB.toFixed(2)} MB)`)
-      await saveAudioFileAsDocument(db, transcriptionId, audioPath, filename, mimeType, stats.size)
-    }
+    // Always use GridFS for audio files to prevent performance issues
+    // Document storage causes slow queries when fetching multiple transcriptions
+    // Even small audio files can cause issues when there are many transcriptions
+    console.log(`Using GridFS for audio file: ${filename} (${fileSizeMB.toFixed(2)} MB)`)
+    await saveAudioFileWithGridFS(db, transcriptionId, audioPath, filename, mimeType, stats.size)
     
   } catch (error) {
     console.error(`Failed to save audio file to database:`, error)

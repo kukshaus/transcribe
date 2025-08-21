@@ -19,6 +19,8 @@ export async function GET(
     }
 
     const { id } = params
+    const { searchParams } = new URL(request.url)
+    const includeAudioData = searchParams.get('includeAudioData') === 'true'
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid transcription ID' }, { status: 400 })
@@ -27,10 +29,25 @@ export async function GET(
     const db = await getDatabase()
     const transcriptionsCollection = db.collection<Transcription>('transcriptions')
 
-    const transcription = await transcriptionsCollection.findOne({ 
-      _id: new ObjectId(id),
-      userId: session.user.id
-    })
+    // Build projection to exclude audio data by default
+    const projection: any = {
+      audioFile: {
+        data: 0 // Exclude large audio data by default
+      }
+    }
+
+    // Only include audio data if explicitly requested
+    if (includeAudioData) {
+      delete projection.audioFile
+    }
+
+    const transcription = await transcriptionsCollection.findOne(
+      { 
+        _id: new ObjectId(id),
+        userId: session.user.id
+      },
+      { projection }
+    )
 
     if (!transcription) {
       return NextResponse.json({ error: 'Transcription not found' }, { status: 404 })
