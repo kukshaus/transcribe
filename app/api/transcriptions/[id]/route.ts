@@ -3,7 +3,7 @@ import { getDatabase } from '@/lib/mongodb'
 import { Transcription } from '@/lib/models/Transcription'
 import { ObjectId } from 'mongodb'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from '../../auth/[...nextauth]/auth'
 import fs from 'fs'
 import path from 'path'
 

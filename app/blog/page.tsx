@@ -36,26 +36,26 @@ export default function BlogPage() {
     },
     {
       id: 'meeting-notes-ai-generation',
-      title: 'AI-Powered Meeting Notes: Transform Audio into Actionable Insights',
-      excerpt: 'Stop taking manual notes during meetings. Learn how AI can automatically generate comprehensive meeting notes, identify action items, and create follow-up tasks.',
+      title: 'AI Meeting Notes Generation: Transform Conversations into Actionable Insights',
+      excerpt: 'Discover how AI-powered meeting notes generation can revolutionize your workflow. Learn tools, best practices, and real-world applications for creating comprehensive meeting summaries.',
       category: 'Productivity',
-      readTime: '10 min read',
+      readTime: '15 min read',
       date: '2024-01-10'
     },
     {
       id: 'prd-generation-from-meetings',
-      title: 'Create PRDs from Meeting Recordings: AI-Powered Documentation',
-      excerpt: 'Streamline your product development process by automatically generating PRDs from meeting recordings. Save hours of manual work with intelligent AI analysis.',
+      title: 'PRD Generation from Meetings: Turn Conversations into Product Requirements',
+      excerpt: 'Learn how to automatically generate comprehensive Product Requirements Documents (PRDs) from meeting transcripts using AI. Streamline your product development process.',
       category: 'Product Management',
-      readTime: '12 min read',
+      readTime: '18 min read',
       date: '2024-01-08'
     },
     {
       id: 'transcription-accuracy-tips',
-      title: 'Maximizing Transcription Accuracy: Best Practices for Clear Results',
-      excerpt: 'Get the most accurate transcriptions possible with our expert tips. Learn how audio quality, speaker clarity, and platform settings affect transcription results.',
+      title: 'Transcription Accuracy Tips: Boost Your AI Transcription Quality',
+      excerpt: 'Unlock the secrets to achieving 99%+ transcription accuracy. From audio quality optimization to post-processing techniques, discover proven strategies for perfect transcripts.',
       category: 'Tips & Tricks',
-      readTime: '7 min read',
+      readTime: '20 min read',
       date: '2024-01-05'
     },
     {

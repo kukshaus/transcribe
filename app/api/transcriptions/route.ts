@@ -4,7 +4,7 @@ import { Transcription, TranscriptionStatus } from '@/lib/models/Transcription'
 import { downloadAudio, transcribeAudio, generateNotes, cleanupTempFile, getVideoMetadata, saveAudioFileToDatabase } from '@/lib/transcription'
 import { ObjectId } from 'mongodb'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from '../auth/[...nextauth]/auth'
 import { generateUserFingerprint, getClientIP } from '@/lib/fingerprint'
 import { checkAnonymousUserLimit, incrementAnonymousUserUsage, initializeUserTokens, checkUserTokens, consumeUserTokenWithHistory, updateTranscriptionInSpendingHistory } from '@/lib/usage'
 

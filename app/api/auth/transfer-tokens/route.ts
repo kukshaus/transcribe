@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../[...nextauth]/route'
+import { authOptions } from '../[...nextauth]/auth'
 import { generateUserFingerprint } from '@/lib/fingerprint'
 import { transferAnonymousUsageToUser } from '@/lib/usage'
 

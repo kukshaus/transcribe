@@ -47,19 +47,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/blog/ai-meeting-notes`,
+      url: `${baseUrl}/blog/meeting-notes-ai-generation`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/blog/prd-from-meetings`,
+      url: `${baseUrl}/blog/prd-generation-from-meetings`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/blog/transcription-accuracy`,
+      url: `${baseUrl}/blog/transcription-accuracy-tips`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
