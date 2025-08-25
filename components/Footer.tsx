@@ -12,7 +12,8 @@ export default function Footer() {
           <div className="sm:col-span-2 lg:col-span-2">
             <Logo size="sm" variant="light" showText={true} />
             <p className="mt-4 text-gray-300 max-w-md">
-              Transform audio content from any platform into searchable text and organized notes. 
+              Transform YouTube videos, SoundCloud audio, and meetings into searchable text instantly. 
+              Best AI transcription software for students, product managers, and professionals. 
               Free, fast, and no signup required.
             </p>
             <div className="flex items-center gap-6 mt-6">
