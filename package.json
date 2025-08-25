@@ -18,7 +18,12 @@
     "version:minor": "npm version minor --no-git-tag-version && npm run version:update",
     "version:major": "npm version major --no-git-tag-version && npm run version:update",
     "version:update": "node scripts/update-version.js",
-    "version:show": "node -e \"console.log('App Version:', require('./lib/version.ts').getVersionString())\""
+    "version:show": "node -e \"console.log('App Version:', require('./lib/version.ts').getVersionString())\"",
+    "optimize:assets": "node scripts/optimize-assets.js",
+    "seo:audit": "npm run optimize:assets && npm run build",
+    "performance:test": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
+    "test:seo": "node scripts/test-seo.js",
+    "submit:google": "node scripts/submit-to-google.js"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -41,6 +46,7 @@
     "postcss": "^8.4.31",
     "react": "^18",
     "react-dom": "^18",
+    "sharp": "^0.34.3",
     "stripe": "^18.4.0",
     "tailwindcss": "^3.3.0",
     "typescript": "^5",

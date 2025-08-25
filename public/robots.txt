@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://transcribe.snapcoder.io/sitemap.xml
+
+# Disallow admin and debug routes
+Disallow: /api/debug/
+Disallow: /debug-tokens/
+Disallow: /debug-version/
+
+# Allow important pages
+Allow: /pricing/
+Allow: /privacy/
+Allow: /terms/
+Allow: /profile/
+Allow: /transcriptions/
+Allow: /shared/

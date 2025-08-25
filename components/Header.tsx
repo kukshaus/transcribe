@@ -24,6 +24,30 @@ export default function Header() {
           {/* Navigation and Authentication UI */}
           <div className="flex items-center space-x-4">
             <Link
+              href="/faq"
+              className="text-white/80 hover:text-white transition-colors font-medium"
+            >
+              FAQ
+            </Link>
+            <Link
+              href="/blog"
+              className="text-white/80 hover:text-white transition-colors font-medium"
+            >
+              Blog
+            </Link>
+            <Link
+              href="/use-cases"
+              className="text-white/80 hover:text-white transition-colors font-medium"
+            >
+              Use Cases
+            </Link>
+            <Link
+              href="/compare"
+              className="text-white/80 hover:text-white transition-colors font-medium"
+            >
+              Compare
+            </Link>
+            <Link
               href="/pricing"
               className="text-white/80 hover:text-white transition-colors font-medium"
             >

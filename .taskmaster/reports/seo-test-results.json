@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-08-25T17:23:06.991Z",
+  "results": {
+    "passed": 39,
+    "failed": 0,
+    "total": 39
+  },
+  "details": {
+    "pages": 7,
+    "components": 3,
+    "files": 5,
+    "scripts": 3
+  }
+}

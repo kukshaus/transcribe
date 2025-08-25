@@ -9,6 +9,7 @@ import { CheckCircle, Star, ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Image from 'next/image'
+import Head from 'next/head'
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -18,6 +19,38 @@ export default function PricingPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
+
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "TranscribeAI Transcription Credits",
+    "description": "Purchase transcription credits for AI-powered audio to text conversion, meeting notes, and PRD generation",
+    "url": "https://transcribeai.com/pricing",
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Starter Package",
+        "price": "9.99",
+        "priceCurrency": "USD",
+        "description": "100 transcription credits"
+      },
+      {
+        "@type": "Offer", 
+        "name": "Professional Package",
+        "price": "29.99",
+        "priceCurrency": "USD",
+        "description": "500 transcription credits"
+      },
+      {
+        "@type": "Offer",
+        "name": "Enterprise Package", 
+        "price": "99.99",
+        "priceCurrency": "USD",
+        "description": "2500 transcription credits"
+      }
+    ]
+  }
 
   const handleGetStarted = async (packageId: string) => {
     if (!session) {
@@ -66,8 +99,17 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <Header />
+    <>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData)
+        }}
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <Header />
       
       <div className="pt-24 pb-16 px-4">
         <div className="max-w-6xl mx-auto">
@@ -239,5 +281,6 @@ export default function PricingPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

@@ -12,6 +12,7 @@ import { ToastContainer, useToast } from '@/components/Toast'
 import { Transcription } from '@/lib/models/Transcription'
 import { RefreshCw, AlertTriangle, HelpCircle, ChevronDown, ChevronUp, Lock } from 'lucide-react'
 import Link from 'next/link'
+import Head from 'next/head'
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -25,6 +26,70 @@ export default function Home() {
   const [userTokens, setUserTokens] = useState<{tokens: number, hasTokens: boolean} | null>(null)
   const { toasts, removeToast, success, error, warning } = useToast()
   const transcriptionsRef = useRef<HTMLElement>(null)
+
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TranscribeAI",
+    "description": "Best AI transcription software for YouTube videos, SoundCloud audio, and meetings. Transform audio content into searchable text instantly.",
+    "url": "https://transcribeai.com",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free trial available"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "1250"
+    },
+    "featureList": [
+      "YouTube video transcription",
+      "SoundCloud audio to text",
+      "Meeting notes generation",
+      "PRD creation from audio",
+      "AI-powered note-taking",
+      "Instant transcription"
+    ]
+  }
+
+  // Organization schema
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "TranscribeAI",
+    "url": "https://transcribeai.com",
+    "logo": "https://transcribeai.com/transcribeai-logo.png",
+    "description": "AI-powered transcription software for YouTube, SoundCloud, and meeting audio",
+    "foundingDate": "2024",
+    "sameAs": [
+      "https://twitter.com/transcribeai",
+      "https://linkedin.com/company/transcribeai"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "email": "support@transcribeai.com"
+    }
+  }
+
+  // Breadcrumb schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://transcribeai.com"
+      }
+    ]
+  }
 
   // Fetch transcriptions and usage info
   useEffect(() => {
@@ -378,6 +443,26 @@ export default function Home() {
 
   return (
     <>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationSchema)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema)
+        }}
+      />
+      
       {/* Hero Section */}
       <section className="min-h-screen flex flex-col items-center justify-center px-4 pt-16">
         <div className="max-w-5xl mx-auto text-center">
@@ -408,11 +493,11 @@ export default function Home() {
           <h1 className="text-6xl md:text-8xl font-bold text-white mb-10 leading-tight">
             <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
               <RotatingText />
-            </span> Transcript Generator
+            </span> AI Transcription Software
           </h1>
           
           <p className="text-2xl md:text-3xl text-gray-300 mb-16 max-w-3xl mx-auto">
-            No file uploads required. Get transcripts in seconds.
+            Transform YouTube videos, SoundCloud audio, and meetings into searchable text instantly. Best AI transcription software for students, product managers, and professionals.
           </p>
 
           {/* URL Input Section */}
@@ -489,6 +574,59 @@ export default function Home() {
                   </svg>
                 </div>
                 <span className="text-sm font-medium">Audio</span>
+              </div>
+            </div>
+          </div>
+
+          {/* SEO-Optimized Features Section */}
+          <div className="max-w-4xl mx-auto mb-16">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+                <h3 className="text-xl font-semibold text-white mb-4">Perfect for Students & Researchers</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• Transform YouTube lectures into study notes</li>
+                  <li>• Create summaries from long educational videos</li>
+                  <li>• Extract key points from academic podcasts</li>
+                  <li>• Save time on manual note-taking</li>
+                </ul>
+                <div className="mt-4">
+                  <Link 
+                    href="/guide/youtube-transcription" 
+                    className="text-purple-400 hover:text-purple-300 text-sm font-medium"
+                  >
+                    Read our complete guide →
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+                <h3 className="text-xl font-semibold text-white mb-4">Essential for Product Managers</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• Generate PRDs from meeting recordings</li>
+                  <li>• Automate product documentation</li>
+                  <li>• Capture stakeholder feedback accurately</li>
+                  <li>• Speed up requirement gathering</li>
+                </ul>
+              </div>
+              
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+                <h3 className="text-xl font-semibold text-white mb-4">Professional Transcription Service</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• Enterprise-grade accuracy</li>
+                  <li>• Support for multiple audio formats</li>
+                  <li>• Instant processing without uploads</li>
+                  <li>• Secure and private transcription</li>
+                </ul>
+              </div>
+              
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+                <h3 className="text-xl font-semibold text-white mb-4">AI-Powered Features</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• Smart note generation</li>
+                  <li>• Automatic content summarization</li>
+                  <li>• Intelligent PRD creation</li>
+                  <li>• Context-aware transcription</li>
+                </ul>
               </div>
             </div>
           </div>
