@@ -492,12 +492,12 @@ export default function Home() {
           
           <h1 className="text-6xl md:text-8xl font-bold text-white mb-10 leading-tight">
             <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
-              <RotatingText />
-            </span> AI Transcription Software
+              Podcasts
+            </span> Transcript Generator
           </h1>
           
           <p className="text-2xl md:text-3xl text-gray-300 mb-16 max-w-3xl mx-auto">
-            Transform YouTube videos, SoundCloud audio, and meetings into searchable text instantly. Best AI transcription software for students, product managers, and professionals.
+            No file uploads required. Get transcripts in seconds.
           </p>
 
           {/* URL Input Section */}
