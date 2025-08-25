@@ -578,58 +578,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SEO-Optimized Features Section */}
-          <div className="max-w-4xl mx-auto mb-16">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-4">Perfect for Students & Researchers</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• Transform YouTube lectures into study notes</li>
-                  <li>• Create summaries from long educational videos</li>
-                  <li>• Extract key points from academic podcasts</li>
-                  <li>• Save time on manual note-taking</li>
-                </ul>
-                <div className="mt-4">
-                  <Link 
-                    href="/guide/youtube-transcription" 
-                    className="text-purple-400 hover:text-purple-300 text-sm font-medium"
-                  >
-                    Read our complete guide →
-                  </Link>
-                </div>
-              </div>
-              
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-4">Essential for Product Managers</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• Generate PRDs from meeting recordings</li>
-                  <li>• Automate product documentation</li>
-                  <li>• Capture stakeholder feedback accurately</li>
-                  <li>• Speed up requirement gathering</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-4">Professional Transcription Service</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• Enterprise-grade accuracy</li>
-                  <li>• Support for multiple audio formats</li>
-                  <li>• Instant processing without uploads</li>
-                  <li>• Secure and private transcription</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-4">AI-Powered Features</h3>
-                <ul className="space-y-2 text-gray-300">
-                  <li>• Smart note generation</li>
-                  <li>• Automatic content summarization</li>
-                  <li>• Intelligent PRD creation</li>
-                  <li>• Context-aware transcription</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+
 
           {/* How it Works Button */}
           <div className="max-w-2xl mx-auto mb-16">
