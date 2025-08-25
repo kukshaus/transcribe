@@ -29,24 +29,7 @@ export default function Header() {
             >
               FAQ
             </Link>
-            <Link
-              href="/blog"
-              className="text-white/80 hover:text-white transition-colors font-medium"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/use-cases"
-              className="text-white/80 hover:text-white transition-colors font-medium"
-            >
-              Use Cases
-            </Link>
-            <Link
-              href="/compare"
-              className="text-white/80 hover:text-white transition-colors font-medium"
-            >
-              Compare
-            </Link>
+
             <Link
               href="/pricing"
               className="text-white/80 hover:text-white transition-colors font-medium"

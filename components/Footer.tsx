@@ -41,6 +41,21 @@ export default function Footer() {
                 </a>
               </li>
               <li>
+                <a href="/blog" className="hover:text-white transition-colors duration-200">
+                  Blog
+                </a>
+              </li>
+              <li>
+                <a href="/use-cases" className="hover:text-white transition-colors duration-200">
+                  Use Cases
+                </a>
+              </li>
+              <li>
+                <a href="/compare" className="hover:text-white transition-colors duration-200">
+                  Compare
+                </a>
+              </li>
+              <li>
                 <a href="mailto:transcribe@snapcoder.io" className="hover:text-white transition-colors duration-200">
                   Support
                 </a>
