@@ -42,11 +42,25 @@ export default function TranscriptionDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [userTokens, setUserTokens] = useState<{tokens: number, hasTokens: boolean} | null>(null)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [shareSettings, setShareSettings] = useState({
+    allowComments: false,
+    allowDownload: true,
+    allowAudio: false
+  })
+  const [shareStatus, setShareStatus] = useState<{
+    isPublic: boolean
+    publicUrl: string | null
+    publicId: string | null
+    sharedAt: Date | null
+  } | null>(null)
+  const [isSharing, setIsSharing] = useState(false)
 
   useEffect(() => {
     if (params.id && status === 'authenticated' && !transcription) {
       fetchTranscription(params.id as string)
       fetchUserTokens()
+      fetchShareStatus() // Fetch share status on load
     } else if (status === 'unauthenticated') {
       router.push('/')
     }
@@ -106,6 +120,83 @@ export default function TranscriptionDetailPage() {
       }
     } catch (err) {
       console.error('Error fetching user tokens:', err)
+    }
+  }
+
+  const fetchShareStatus = async () => {
+    try {
+      const response = await fetch(`/api/transcriptions/${params.id}/share`)
+      if (response.ok) {
+        const data = await response.json()
+        setShareStatus(data)
+        setShareSettings(data.shareSettings || {
+          allowComments: false,
+          allowDownload: true,
+          allowAudio: false
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching share status:', err)
+    }
+  }
+
+  const handleShare = async () => {
+    if (!transcription) return
+    
+    if (shareStatus?.isPublic) {
+      // Already shared, show current status
+      setShowShareModal(true)
+      return
+    }
+    
+    // Show share modal
+    setShowShareModal(true)
+  }
+
+  const handleShareAction = async (action: 'share' | 'unshare') => {
+    if (!transcription) return
+    
+    setIsSharing(true)
+    try {
+      const response = await fetch(`/api/transcriptions/${transcription._id}/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          action,
+          settings: action === 'share' ? shareSettings : undefined
+        }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        
+        if (action === 'share') {
+          success('Shared Successfully!', 'Your transcription is now publicly accessible')
+          // Copy public URL to clipboard
+          try {
+            await navigator.clipboard.writeText(result.publicUrl)
+            success('Link Copied!', 'Public link copied to clipboard')
+          } catch (err) {
+            // Fallback for older browsers
+          }
+        } else {
+          success('Unshared Successfully!', 'Your transcription is now private')
+        }
+        
+        // Refresh share status
+        await fetchShareStatus()
+        setShowShareModal(false)
+      } else {
+        const errorData = await response.json()
+        error('Share Failed', errorData.error || 'Could not update sharing status')
+      }
+    } catch (err) {
+      console.error('Error updating share status:', err)
+      error('Error', 'Failed to update sharing status')
+    } finally {
+      setIsSharing(false)
     }
   }
 
@@ -262,28 +353,6 @@ export default function TranscriptionDetailPage() {
     }
   }
 
-  const handleShare = async () => {
-    const url = window.location.href
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: transcription?.title || 'Transcription',
-          url: url
-        })
-      } catch (err) {
-        // User cancelled sharing
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url)
-        success('Link Copied!', 'Share link copied to clipboard')
-      } catch (err) {
-        error('Error', 'Failed to copy link')
-      }
-    }
-  }
-
   const handleDeleteTranscription = async () => {
     if (!transcription) return
     
@@ -402,11 +471,31 @@ export default function TranscriptionDetailPage() {
             <div className="flex items-center space-x-3 relative z-50">
               <button
                 onClick={handleShare}
-                className="inline-flex items-center space-x-2 px-4 py-2 text-gray-300 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors relative z-50"
+                className={`inline-flex items-center space-x-2 px-4 py-2 text-gray-300 border border-gray-600 rounded-lg transition-colors relative z-50 ${
+                  shareStatus?.isPublic 
+                    ? 'bg-green-800 border-green-600 text-green-300 hover:bg-green-700' 
+                    : 'bg-gray-800 hover:bg-gray-700'
+                }`}
               >
                 <Share2 className="h-4 w-4" />
-                <span>Share</span>
+                <span>{shareStatus?.isPublic ? 'Shared' : 'Share'}</span>
+                {shareStatus?.isPublic && (
+                  <span className="ml-1 inline-flex items-center justify-center w-2 h-2 bg-green-400 rounded-full"></span>
+                )}
               </button>
+              
+              {shareStatus?.isPublic && shareStatus.publicUrl && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareStatus.publicUrl!)
+                    success('Link Copied!', 'Public link copied to clipboard')
+                  }}
+                  className="inline-flex items-center space-x-2 px-3 py-2 text-blue-300 bg-blue-800 border border-blue-600 rounded-lg hover:bg-blue-700 transition-colors relative z-50"
+                >
+                  <Copy className="h-3 w-3" />
+                  <span>Copy Link</span>
+                </button>
+              )}
               
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -1044,6 +1133,126 @@ export default function TranscriptionDetailPage() {
                 {isDeleting && <RefreshCw className="h-4 w-4 animate-spin" />}
                 <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Share2 className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {shareStatus?.isPublic ? 'Manage Sharing' : 'Share Transcription'}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {shareStatus?.isPublic 
+                    ? 'Your transcription is currently shared publicly. You can modify settings or make it private.'
+                    : 'Make your transcription publicly accessible by sharing it.'
+                  }
+                </p>
+              </div>
+            </div>
+            
+            {shareStatus?.isPublic && shareStatus.publicUrl && (
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">Public Link:</p>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={shareStatus.publicUrl}
+                    readOnly
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded bg-white"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareStatus.publicUrl!)
+                      success('Link Copied!', 'Public link copied to clipboard')
+                    }}
+                    className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="allowComments"
+                  checked={shareSettings.allowComments}
+                  onChange={(e) => setShareSettings({ ...shareSettings, allowComments: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="allowComments" className="text-sm text-gray-900">Allow comments</label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="allowDownload"
+                  checked={shareSettings.allowDownload}
+                  onChange={(e) => setShareSettings({ ...shareSettings, allowDownload: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="allowDownload" className="text-sm text-gray-900">Allow downloads</label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="allowAudio"
+                  checked={shareSettings.allowAudio}
+                  onChange={(e) => setShareSettings({ ...shareSettings, allowAudio: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="allowAudio" className="text-sm text-gray-900">Allow audio playback</label>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowShareModal(false)}
+                disabled={isSharing}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              
+              {shareStatus?.isPublic ? (
+                <>
+                  <button
+                    onClick={() => handleShareAction('share')}
+                    disabled={isSharing}
+                    className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {isSharing && <RefreshCw className="h-4 w-4 animate-spin" />}
+                    <span>{isSharing ? 'Updating...' : 'Update Settings'}</span>
+                  </button>
+                  <button
+                    onClick={() => handleShareAction('unshare')}
+                    disabled={isSharing}
+                    className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {isSharing && <RefreshCw className="h-4 w-4 animate-spin" />}
+                    <span>{isSharing ? 'Unsharing...' : 'Make Private'}</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => handleShareAction('share')}
+                  disabled={isSharing}
+                  className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {isSharing && <RefreshCw className="h-4 w-4 animate-spin" />}
+                  <span>{isSharing ? 'Sharing...' : 'Share Transcription'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

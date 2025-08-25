@@ -31,6 +31,15 @@ export interface Transcription {
     percentage: number
     details?: string
   }
+  // Sharing fields
+  isPublic?: boolean
+  publicId?: string // Unique identifier for public access
+  sharedAt?: Date
+  shareSettings?: {
+    allowComments?: boolean
+    allowDownload?: boolean
+    allowAudio?: boolean
+  }
 }
 
 export const TranscriptionStatus = {

@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
     const type = searchParams.get('type') as 'transcription' | 'notes' | 'notion' | 'prd' | 'audio'
+    const publicId = searchParams.get('publicId') // For public access
 
     if (!id || !type) {
       return NextResponse.json({ error: 'ID and type are required' }, { status: 400 })
@@ -30,7 +31,22 @@ export async function GET(request: NextRequest) {
 
     let transcription: Transcription | null = null
 
-    if (session?.user?.id) {
+    if (publicId) {
+      // Public access - find by public ID and ensure it's shared
+      transcription = await transcriptionsCollection.findOne({ 
+        publicId,
+        isPublic: true
+      })
+      
+      if (!transcription) {
+        return NextResponse.json({ error: 'Shared transcription not found' }, { status: 404 })
+      }
+      
+      // Check if downloads are allowed for this shared transcription
+      if (transcription.shareSettings?.allowDownload === false) {
+        return NextResponse.json({ error: 'Downloads are disabled for this shared transcription' }, { status: 403 })
+      }
+    } else if (session?.user?.id) {
       // For authenticated users, find by userId
       transcription = await transcriptionsCollection.findOne({ 
         _id: new ObjectId(id),

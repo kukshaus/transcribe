@@ -12,15 +12,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
     const { id } = params
     const { searchParams } = new URL(request.url)
     const includeAudioData = searchParams.get('includeAudioData') === 'true'
+    const isPublicAccess = searchParams.get('public') === 'true'
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid transcription ID' }, { status: 400 })
@@ -41,13 +36,33 @@ export async function GET(
       delete projection.audioFile
     }
 
-    const transcription = await transcriptionsCollection.findOne(
-      { 
-        _id: new ObjectId(id),
-        userId: session.user.id
-      },
-      { projection }
-    )
+    let transcription: Transcription | null = null
+
+    if (isPublicAccess) {
+      // Public access - check if transcription is shared publicly
+      transcription = await transcriptionsCollection.findOne(
+        { 
+          _id: new ObjectId(id),
+          isPublic: true
+        },
+        { projection }
+      )
+    } else {
+      // Private access - require authentication and ownership
+      const session = await getServerSession(authOptions)
+      
+      if (!session || !session.user?.id) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      }
+
+      transcription = await transcriptionsCollection.findOne(
+        { 
+          _id: new ObjectId(id),
+          userId: session.user.id
+        },
+        { projection }
+      )
+    }
 
     if (!transcription) {
       return NextResponse.json({ error: 'Transcription not found' }, { status: 404 })
