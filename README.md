@@ -1,6 +1,6 @@
-# Audio Transcriber
+# TranscribeAI
 
-A modern web application that transcribes audio content from YouTube, SoundCloud, and other platforms using AI, and generates structured notes from the transcriptions.
+A modern web application that transcribes audio content from YouTube, SoundCloud, and other platforms using AI, and generates structured notes from the transcriptions. Features a custom Bison Bucks payment system for premium AI features.
 
 🔗 **Repository**: [https://github.com/kukshaus/transcribe.git](https://github.com/kukshaus/transcribe.git)
 
@@ -9,18 +9,24 @@ A modern web application that transcribes audio content from YouTube, SoundCloud
 - 🎵 **Multi-platform Support**: YouTube, SoundCloud, and more
 - 🤖 **AI Transcription**: Powered by OpenAI Whisper for accurate speech-to-text
 - 📝 **Smart Notes**: AI-generated structured notes from transcriptions
-- 💾 **Download Options**: Export transcriptions and notes as text files
-- 📋 **Notion Export**: Download notes formatted for easy Notion import
 - 📄 **PRD Generation**: Transform notes into comprehensive Product Requirements Documents
-- 🎨 **Modern UI**: Clean, Stripe-inspired design with real-time updates
+- 💾 **Download Options**: Export transcriptions, notes, and PRDs as text files
+- 📋 **Notion Export**: Download notes formatted for easy Notion import
+- 🔐 **Google OAuth**: Secure authentication with Google accounts
+- 💰 **Bison Bucks System**: Custom currency for premium AI features
+- 💳 **Stripe Integration**: Secure payment processing for Bison Bucks purchases
+- 🎨 **Modern UI**: Clean, responsive design with real-time updates
 - ⚡ **Background Processing**: Non-blocking transcription workflow
 - 📊 **Status Tracking**: Real-time progress monitoring
+- 👤 **User Profiles**: Track usage history and Bison Bucks balance
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes
 - **Database**: MongoDB
+- **Authentication**: NextAuth.js with Google OAuth
+- **Payments**: Stripe for Bison Bucks purchases
 - **AI Services**: OpenAI (Whisper + GPT-3.5)
 - **Audio Processing**: yt-dlp for audio extraction
 
@@ -31,7 +37,9 @@ Before running the application, make sure you have:
 1. **Node.js** (v18 or later)
 2. **MongoDB** (local installation or MongoDB Atlas)
 3. **OpenAI API Key** (for transcription and note generation)
-4. **yt-dlp** (for audio downloading)
+4. **Google OAuth Credentials** (for user authentication)
+5. **Stripe Account** (for payment processing)
+6. **yt-dlp** (for audio downloading)
 
 ### Installing yt-dlp
 
@@ -71,6 +79,18 @@ pip install yt-dlp
    # OpenAI API key (required for transcription, notes, and PRD generation)
    OPENAI_API_KEY=your_openai_api_key_here
    
+   # Google OAuth (required for authentication)
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your_nextauth_secret
+   
+   # Stripe (required for Bison Bucks payments)
+   STRIPE_SECRET_KEY=your_stripe_secret_key
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+   STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+   NEXT_PUBLIC_BASE_URL=http://localhost:3000
+   
    # PRD Generation Settings (Optional)
    PRD_MODEL=gpt-3.5-turbo
    PRD_MAX_TOKENS=4000
@@ -95,13 +115,23 @@ pip install yt-dlp
 
 ## Usage
 
+### For Anonymous Users
 1. **Paste a URL**: Enter a URL from YouTube, SoundCloud, or other supported platforms
-2. **Start Transcription**: Click "Start Transcription" to begin processing
+2. **Start Transcription**: Click "Get Video Transcript" to begin processing
 3. **Monitor Progress**: Watch real-time status updates (Pending → Processing → Completed)
-4. **View Results**: Switch between transcription and AI-generated notes
-5. **Download**: Export transcriptions or notes as text files
-6. **Export to Notion** (optional): Download notes formatted for easy import into Notion
-7. **Generate PRD** (optional): Transform notes into a comprehensive Product Requirements Document
+4. **View Results**: View the transcription text
+5. **Download**: Export transcriptions as text files
+
+### For Authenticated Users
+1. **Sign In**: Use Google OAuth to create an account
+2. **Get Free Bison Bucks**: Receive 1 free Bison Buck upon signup
+3. **Paste a URL**: Enter a URL from YouTube, SoundCloud, or other supported platforms
+4. **Start Transcription**: Click "Get Video Transcript" to begin processing (costs 1 Bison Buck)
+5. **Generate AI Notes**: Create structured notes from transcriptions (costs 1 Bison Buck)
+6. **Generate PRD**: Transform notes into Product Requirements Documents (costs 2 Bison Bucks)
+7. **Download**: Export transcriptions, notes, or PRDs as text files
+8. **Export to Notion**: Download notes formatted for easy import into Notion
+9. **Purchase More Bison Bucks**: Buy additional Bison Bucks through Stripe integration
 
 ## Supported Platforms
 
@@ -110,13 +140,47 @@ pip install yt-dlp
 
 - 🔄 **Other platforms** - May work if supported by yt-dlp
 
+## Bison Bucks System
+
+TranscribeAI uses a custom currency called "Bison Bucks" for premium AI features:
+
+### Pricing
+- **1 Bison Buck** = 1 transcription
+- **1 Bison Buck** = 1 AI notes generation  
+- **2 Bison Bucks** = 1 PRD generation
+
+### Packages
+- **Starter Pack**: 10 Bison Bucks for $5.00 ($0.50 per Bison Buck)
+- **Professional Pack**: 25 Bison Bucks for $10.00 ($0.40 per Bison Buck) - Most Popular
+- **Enterprise Pack**: 50 Bison Bucks for $18.00 ($0.36 per Bison Buck)
+
+### Features
+- **No Expiration**: Bison Bucks never expire
+- **Pay Once, Use Anytime**: No subscriptions required
+- **Secure Payments**: Processed through Stripe
+- **Free Starter**: Get 1 free Bison Buck upon signup
+- **Usage Tracking**: Monitor your Bison Bucks balance and spending history
+
 ## API Endpoints
 
+### Core Features
 - `POST /api/transcriptions` - Create a new transcription job
 - `GET /api/transcriptions` - List all transcriptions
 - `GET /api/transcriptions/[id]` - Get a specific transcription
 - `GET /api/download` - Download transcription, notes, Notion-formatted files, or PRDs
+- `POST /api/generate-notes` - Generate AI notes from transcription
 - `POST /api/generate-prd` - Generate Product Requirements Document from notes
+
+### Authentication & User Management
+- `GET /api/auth/[...nextauth]` - NextAuth.js authentication endpoints
+- `GET /api/user/tokens` - Get user's Bison Bucks balance
+- `GET /api/user/spending-history` - Get user's Bison Bucks transaction history
+
+### Payment System
+- `POST /api/stripe/checkout` - Create Stripe checkout session for Bison Bucks purchase
+- `POST /api/stripe/webhook` - Handle Stripe payment webhooks
+- `GET /api/payment/success` - Payment success page
+- `GET /api/payment/cancel` - Payment cancellation page
 
 ## Development
 
@@ -164,6 +228,14 @@ Make sure your OpenAI API key has access to:
 |----------|-------------|----------|---------|
 | `MONGODB_URI` | MongoDB connection string | Yes | - |
 | `OPENAI_API_KEY` | OpenAI API key for transcription, notes, and PRD generation | Yes | - |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | Yes | - |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | Yes | - |
+| `NEXTAUTH_URL` | Base URL for NextAuth.js | Yes | - |
+| `NEXTAUTH_SECRET` | Secret for NextAuth.js JWT signing | Yes | - |
+| `STRIPE_SECRET_KEY` | Stripe secret key for payments | Yes | - |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Yes | - |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes | - |
+| `NEXT_PUBLIC_BASE_URL` | Base URL for the application | Yes | - |
 | `PRD_MODEL` | OpenAI model for PRD generation | No | gpt-3.5-turbo |
 | `PRD_MAX_TOKENS` | Maximum tokens for PRD generation | No | 4000 |
 | `PRD_TEMPERATURE` | Creativity level for PRD generation (0.0-1.0) | No | 0.7 |
@@ -248,6 +320,14 @@ You can customize PRD generation behavior using environment variables:
 3. Add environment variables in Vercel dashboard:
    - `MONGODB_URI` - Your MongoDB connection string
    - `OPENAI_API_KEY` - Your OpenAI API key
+   - `GOOGLE_CLIENT_ID` - Your Google OAuth client ID
+   - `GOOGLE_CLIENT_SECRET` - Your Google OAuth client secret
+   - `NEXTAUTH_URL` - Your production URL (e.g., https://your-app.vercel.app)
+   - `NEXTAUTH_SECRET` - A random secret for JWT signing
+   - `STRIPE_SECRET_KEY` - Your Stripe secret key
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Your Stripe publishable key
+   - `STRIPE_WEBHOOK_SECRET` - Your Stripe webhook secret
+   - `NEXT_PUBLIC_BASE_URL` - Your production URL
    - `PRD_MODEL` (optional) - OpenAI model for PRD generation
    - `PRD_MAX_TOKENS` (optional) - Token limit for PRDs
    - `PRD_TEMPERATURE` (optional) - Creativity level for PRDs
@@ -273,6 +353,9 @@ You can customize PRD generation behavior using environment variables:
 2. **MongoDB connection failed**: Check your MONGODB_URI and ensure MongoDB is running
 3. **OpenAI API errors**: Verify your API key and check usage limits
 4. **Audio download fails**: Some platforms may have restrictions; try a different URL
+5. **Google OAuth errors**: Verify your Google OAuth credentials and redirect URIs
+6. **Stripe payment failures**: Check your Stripe keys and webhook configuration
+7. **Authentication issues**: Ensure NEXTAUTH_SECRET is set and NEXTAUTH_URL matches your domain
 
 ### Logs
 
@@ -290,8 +373,19 @@ Check the console and server logs for detailed error messages during transcripti
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Setup Guides
+
+For detailed setup instructions, see these guides:
+
+- **[Authentication Setup Guide](AUTHENTICATION_GUIDE.md)** - Complete Google OAuth configuration
+- **[Stripe Setup Guide](STRIPE_SETUP.md)** - Payment system configuration
+- **[Production Migration Guide](PRODUCTION_MIGRATION_GUIDE.md)** - Deploying to production
+- **[Performance Optimization Guide](PERFORMANCE_OPTIMIZATION.md)** - Optimizing for scale
+
 ## Acknowledgments
 
 - OpenAI for Whisper and GPT APIs
 - yt-dlp community for audio extraction capabilities
 - Next.js and React teams for the excellent framework
+- Stripe for payment processing infrastructure
+- NextAuth.js for authentication solutions
