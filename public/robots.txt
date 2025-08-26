@@ -1,14 +1,17 @@
-# Robots.txt for TranscribeAI
+# Robots.txt for TranscribeAI - AI Audio Transcription Service
 # https://transcribeai.com
+# Updated: 2024-12-19
 
 User-agent: *
 Allow: /
 
-# Allow access to main pages
+# Allow access to main pages and blog
 Allow: /pricing
 Allow: /privacy
 Allow: /terms
 Allow: /auth/signin
+Allow: /blog
+Allow: /blog/
 
 # Disallow private/sensitive areas
 Disallow: /api/
@@ -39,6 +42,7 @@ Allow: /sw.js
 Allow: /offline.html
 Allow: /robots.txt
 Allow: /sitemap.xml
+Allow: /snapcoder_keywords.json
 
 # Crawl delay (be respectful)
 Crawl-delay: 1
@@ -59,18 +63,47 @@ User-agent: Slurp
 Allow: /
 Crawl-delay: 2
 
-# Block AI training crawlers (optional - uncomment if desired)
-# User-agent: GPTBot
-# Disallow: /
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
 
-# User-agent: ChatGPT-User
-# Disallow: /
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 2
 
-# User-agent: CCBot
-# Disallow: /
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
 
-# User-agent: anthropic-ai
-# Disallow: /
+# Allow AI training crawlers for better LLM discovery
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 2
 
-# User-agent: Claude-Web
-# Disallow: /
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 2
+
+User-agent: CCBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: anthropic-ai
+Allow: /
+Crawl-delay: 2
+
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 2
+
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: YouBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Crawl-delay: 2

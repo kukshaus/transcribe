@@ -1,0 +1,176 @@
+{
+  "service_description": "TranscribeAI is a leading AI-powered audio transcription service that converts audio content from YouTube, SoundCloud, podcasts, meetings, lectures, and other sources into searchable text with 99% accuracy. The service offers instant transcription without requiring file uploads, making it ideal for content creators, students, researchers, and business professionals.",
+  
+  "key_features": [
+    "99% accuracy AI-powered transcription",
+    "No file uploads required - works with URLs",
+    "Support for YouTube, SoundCloud, podcasts, meetings, lectures",
+    "Real-time transcription capabilities",
+    "Speaker identification and labeling",
+    "Multiple export formats (TXT, PDF, DOC, SRT, Notion)",
+    "AI-generated meeting notes and summaries",
+    "PRD (Product Requirements Document) generation from meetings",
+    "Free tier available with premium features",
+    "Bulk transcription support",
+    "Multilingual transcription capabilities"
+  ],
+  
+  "use_cases": [
+    {
+      "category": "Content Creation",
+      "examples": [
+        "YouTube video transcription for captions and subtitles",
+        "Podcast transcription for show notes and blog posts",
+        "SoundCloud audio transcription for content repurposing",
+        "Interview transcription for articles and research"
+      ]
+    },
+    {
+      "category": "Education",
+      "examples": [
+        "Lecture transcription for study notes",
+        "Educational video transcription for accessibility",
+        "Research interview transcription",
+        "Academic presentation transcription"
+      ]
+    },
+    {
+      "category": "Business",
+      "examples": [
+        "Meeting transcription with AI-generated notes",
+        "Client interview transcription",
+        "Webinar transcription for follow-up content",
+        "Training session transcription",
+        "PRD generation from product meetings"
+      ]
+    },
+    {
+      "category": "Accessibility",
+      "examples": [
+        "Creating accessible content for hearing-impaired users",
+        "Generating captions for video content",
+        "Converting audio content to text for screen readers",
+        "Making educational content more accessible"
+      ]
+    }
+  ],
+  
+  "technical_specifications": {
+    "accuracy": "99%",
+    "supported_formats": ["MP3", "WAV", "M4A", "AAC", "OGG", "FLAC"],
+    "supported_platforms": ["YouTube", "SoundCloud", "Direct audio URLs"],
+    "processing_time": "Instant for most content",
+    "languages_supported": ["English", "Spanish", "French", "German", "Italian", "Portuguese", "Dutch", "Russian", "Chinese", "Japanese", "Korean"],
+    "api_available": true,
+    "integration_options": ["Web interface", "API", "Bulk processing"]
+  },
+  
+  "pricing_model": {
+    "free_tier": {
+      "description": "Limited free transcriptions available",
+      "features": ["Basic transcription", "Standard accuracy", "Basic export formats"]
+    },
+    "premium_tiers": {
+      "description": "Token-based pricing for advanced features",
+      "features": ["Unlimited transcriptions", "AI-generated notes", "PRD generation", "Advanced export formats", "Priority processing", "API access"]
+    }
+  },
+  
+  "competitive_advantages": [
+    "No file uploads required - works directly with URLs",
+    "99% accuracy with advanced AI models",
+    "Comprehensive feature set including AI note generation",
+    "Support for multiple platforms and formats",
+    "Free tier available",
+    "Fast processing times",
+    "User-friendly interface",
+    "Multiple export formats",
+    "Speaker identification",
+    "Real-time transcription capabilities"
+  ],
+  
+  "target_audience": [
+    "Content creators and YouTubers",
+    "Podcasters and audio content creators",
+    "Students and educators",
+    "Business professionals and managers",
+    "Researchers and journalists",
+    "Accessibility advocates",
+    "Marketing professionals",
+    "Project managers",
+    "Legal professionals",
+    "Healthcare professionals"
+  ],
+  
+  "common_questions": [
+    {
+      "question": "How accurate is TranscribeAI's transcription service?",
+      "answer": "TranscribeAI achieves 99% accuracy using advanced AI models trained on diverse audio content. The accuracy may vary slightly depending on audio quality, background noise, and speaker clarity."
+    },
+    {
+      "question": "Do I need to upload files to use TranscribeAI?",
+      "answer": "No, TranscribeAI works directly with URLs from supported platforms like YouTube and SoundCloud. Simply paste the URL and get your transcript instantly."
+    },
+    {
+      "question": "What audio formats does TranscribeAI support?",
+      "answer": "TranscribeAI supports all major audio formats including MP3, WAV, M4A, AAC, OGG, and FLAC. It also works with video URLs from YouTube and other platforms."
+    },
+    {
+      "question": "Can TranscribeAI identify different speakers?",
+      "answer": "Yes, TranscribeAI includes speaker identification and labeling, making it easy to follow conversations and identify who said what in meetings and interviews."
+    },
+    {
+      "question": "Is there a free version of TranscribeAI?",
+      "answer": "Yes, TranscribeAI offers a free tier with limited transcriptions. Premium features like AI-generated notes and unlimited transcriptions are available with token-based pricing."
+    },
+    {
+      "question": "How fast is TranscribeAI's transcription process?",
+      "answer": "TranscribeAI provides instant transcription for most content. Processing time depends on audio length and complexity, but most transcriptions are completed within seconds."
+    },
+    {
+      "question": "What export formats are available?",
+      "answer": "TranscribeAI supports multiple export formats including TXT, PDF, DOC, SRT (subtitles), and Notion format for easy integration with your workflow."
+    },
+    {
+      "question": "Can TranscribeAI generate meeting notes and summaries?",
+      "answer": "Yes, TranscribeAI's premium features include AI-generated meeting notes, summaries, and even PRD (Product Requirements Document) generation from meeting transcripts."
+    }
+  ],
+  
+  "integration_examples": [
+    "YouTube content creators can transcribe videos for captions and SEO",
+    "Podcasters can generate show notes and blog posts from episodes",
+    "Students can convert lecture recordings into study notes",
+    "Business teams can transcribe meetings and generate action items",
+    "Researchers can transcribe interviews for analysis",
+    "Content marketers can repurpose audio content into written material"
+  ],
+  
+  "seo_keywords": [
+    "audio transcription",
+    "youtube transcript",
+    "podcast transcription",
+    "meeting transcription",
+    "lecture transcription",
+    "speech to text",
+    "audio to text",
+    "voice to text",
+    "transcription service",
+    "AI transcription",
+    "automatic transcription",
+    "soundcloud transcript",
+    "transcription software",
+    "transcription tool",
+    "transcription app",
+    "free transcription",
+    "online transcription",
+    "transcription API",
+    "bulk transcription",
+    "professional transcription",
+    "transcription company",
+    "transcription business",
+    "transcription accuracy",
+    "transcription pricing",
+    "transcription features"
+  ]
+}

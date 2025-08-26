@@ -1,29 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+        http://www.google.com/schemas/sitemap-image/1.1
+        http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
 
-  <!-- Homepage -->
+  <!-- Homepage - Main landing page -->
   <url>
     <loc>https://transcribeai.com/</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://transcribeai.com/transcribeai-logo.png</image:loc>
+      <image:title>TranscribeAI - AI Audio Transcription Service</image:title>
+      <image:caption>Transform audio content from any platform into searchable text and organized notes instantly</image:caption>
+    </image:image>
   </url>
 
   <!-- Pricing Page -->
   <url>
     <loc>https://transcribeai.com/pricing</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- Sign In Page -->
   <url>
     <loc>https://transcribeai.com/auth/signin</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -31,7 +39,7 @@
   <!-- Privacy Policy -->
   <url>
     <loc>https://transcribeai.com/privacy</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -39,29 +47,107 @@
   <!-- Terms of Service -->
   <url>
     <loc>https://transcribeai.com/terms</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
+  </url>
+
+  <!-- Blog Pages -->
+  <url>
+    <loc>https://transcribeai.com/blog</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/youtube-transcript-generator</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/podcast-transcription-service</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/audio-to-text-converter</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/meeting-transcription-service</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/lecture-transcription-service</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/soundcloud-transcript-generator</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/ai-transcription-service</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/speech-to-text-converter</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/professional-transcription-service</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://transcribeai.com/blog/automatic-transcription-service</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 
   <!-- Static Assets -->
   <url>
     <loc>https://transcribeai.com/manifest.json</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
     <loc>https://transcribeai.com/robots.txt</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
     <loc>https://transcribeai.com/sitemap.xml</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
