@@ -185,7 +185,7 @@ export default function ProfilePage() {
 
         {/* Token Information */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">AI Tokens</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Bison Bucks</h2>
           
           {userTokens && (
             <div className="space-y-6">
@@ -211,7 +211,7 @@ export default function ProfilePage() {
                         {userTokens.tokens}
                       </div>
                       <div className="text-white/80 text-sm">
-                        AI tokens remaining
+                        Bison Bucks remaining
                       </div>
                     </div>
                   </div>
@@ -222,23 +222,23 @@ export default function ProfilePage() {
                   className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
                 >
                   <CreditCard className="h-5 w-5" />
-                  <span>Buy More Tokens</span>
+                  <span>Buy More Bison Bucks</span>
                 </Link>
               </div>
 
               {/* Token Status */}
               <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                <h3 className="text-white font-medium mb-2">Token Usage</h3>
+                <h3 className="text-white font-medium mb-2">Bison Bucks Usage</h3>
                 <div className="text-white/80 text-sm space-y-1">
-                  <div>• AI notes generation: 1 token per request</div>
-                  <div>• PRD generation: 2 tokens per request</div>
+                  <div>• AI notes generation: 1 Bison Buck per request</div>
+                  <div>• PRD generation: 2 Bison Bucks per request</div>
                 </div>
               </div>
 
               {userTokens.tokens <= 5 && (
                 <div className="bg-amber-500/20 border border-amber-400/50 rounded-lg p-4">
                   <div className="text-amber-300">
-                    <strong>Low Token Warning:</strong> You're running low on AI tokens. 
+                    <strong>Low Bison Bucks Warning:</strong> You're running low on Bison Bucks. 
                     Consider purchasing more to continue using AI features.
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export default function ProfilePage() {
 
         {/* Token History */}
         <div ref={tokenHistoryRef} className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <h2 className="text-2xl font-bold text-white mb-6">Token History</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Bison Bucks History</h2>
           
           {spendingHistory.length > 0 ? (
             <div className="space-y-3">
@@ -308,7 +308,7 @@ export default function ProfilePage() {
                     <div className={`font-medium ${
                       item.tokensChanged > 0 ? 'text-green-400' : 'text-red-400'
                     }`}>
-                      {item.tokensChanged > 0 ? '+' : ''}{item.tokensChanged} token{Math.abs(item.tokensChanged) !== 1 ? 's' : ''}
+                      {item.tokensChanged > 0 ? '+' : ''}{item.tokensChanged} Bison Buck{Math.abs(item.tokensChanged) !== 1 ? 's' : ''}
                     </div>
                     {item.balanceAfter !== undefined && (
                       <div className="text-white/60 text-sm">
@@ -324,9 +324,9 @@ export default function ProfilePage() {
               <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="h-8 w-8 text-white/60" />
               </div>
-              <div className="text-white/80 text-lg mb-2">No token history yet</div>
+              <div className="text-white/80 text-lg mb-2">No Bison Bucks history yet</div>
               <div className="text-white/60">
-                Your token transactions will appear here when you use tokens or receive new ones
+                Your Bison Bucks transactions will appear here when you use Bison Bucks or receive new ones
               </div>
             </div>
           )}

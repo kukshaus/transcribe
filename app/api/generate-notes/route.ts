@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const { tokenCount } = await checkUserTokens(session.user.id)
     if (tokenCount < 1) {
       return NextResponse.json({ 
-        error: 'Insufficient tokens. Please purchase more tokens to continue.',
+        error: 'Insufficient Bison Bucks. Please purchase more Bison Bucks to continue.',
         code: 'INSUFFICIENT_TOKENS'
       }, { status: 402 })
     }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     
     if (!success) {
       return NextResponse.json({ 
-        error: 'Failed to consume tokens. Please try again.',
+        error: 'Failed to consume Bison Bucks. Please try again.',
         code: 'TOKEN_CONSUMPTION_FAILED'
       }, { status: 500 })
     }

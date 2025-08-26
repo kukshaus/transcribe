@@ -1,6 +1,6 @@
 # Stripe Payment Integration Setup Guide
 
-This guide will help you set up Stripe payment processing for token purchases in your transcriber application.
+This guide will help you set up Stripe payment processing for Bison Bucks purchases in your transcriber application.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
 ## Step 3: Set Up Stripe Webhooks
 
-Webhooks are essential for processing successful payments and adding tokens to user accounts.
+Webhooks are essential for processing successful payments and adding Bison Bucks to user accounts.
 
 ### For Local Development:
 
@@ -53,15 +53,15 @@ Webhooks are essential for processing successful payments and adding tokens to u
    - `checkout.session.completed`
 5. Copy the webhook signing secret and add it to your production environment variables
 
-## Step 4: Token Package Configuration
+## Step 4: Bison Bucks Package Configuration
 
-The token packages are configured in `lib/stripe.ts`. You can modify the packages and prices:
+The Bison Bucks packages are configured in `lib/stripe.ts`. You can modify the packages and prices:
 
 ```typescript
 export const TOKEN_PACKAGES = [
   {
     id: 'tokens_10',
-    name: '10 Tokens',
+    name: '10 Bison Bucks',
     description: 'Perfect for getting started',
     tokens: 10,
     price: 500, // $5.00 in cents
@@ -77,8 +77,8 @@ export const TOKEN_PACKAGES = [
 1. Start your application: `npm run dev`
 2. Sign in to your application
 3. Navigate to `/payment/buy-tokens`
-4. Try purchasing tokens with Stripe's test card: `                        `
-5. Check that tokens are added to your account after payment
+4. Try purchasing Bison Bucks with Stripe's test card: `                        `
+5. Check that Bison Bucks are added to your account after payment
 
 ## Step 6: Production Checklist
 
@@ -95,27 +95,27 @@ Before going live:
 
 ### Checkout Session Creation
 - **POST** `/api/stripe/checkout`
-- Creates a Stripe checkout session for token purchase
+- Creates a Stripe checkout session for Bison Bucks purchase
 
 ### Webhook Handler
 - **POST** `/api/stripe/webhook`
-- Handles Stripe events and updates user token balance
+- Handles Stripe events and updates user Bison Bucks balance
 
 ## Payment Flow
 
-1. User clicks "Purchase Tokens" → `/payment/buy-tokens`
-2. User selects a token package
+1. User clicks "Purchase Bison Bucks" → `/payment/buy-tokens`
+2. User selects a Bison Bucks package
 3. Frontend calls `/api/stripe/checkout` to create session
 4. User is redirected to Stripe Checkout
 5. After payment, user is redirected to `/payment/success`
 6. Stripe sends webhook to `/api/stripe/webhook`
-7. Webhook handler adds tokens to user account
+7. Webhook handler adds Bison Bucks to user account
 
-## Token Packages
+## Bison Bucks Packages
 
-| Package | Tokens | Price | Cost per Token |
-|---------|--------|-------|----------------|
-| Starter | 10     | $5.00 | $0.50          |
+| Package | Bison Bucks | Price | Cost per Bison Buck |
+|---------|-------------|-------|-------------------|
+| Starter | 10          | $5.00 | $0.50             |
 | Popular | 25     | $10.00| $0.40          |
 | Value   | 50     | $18.00| $0.36          |
 | Pro     | 100    | $30.00| $0.30          |
@@ -128,7 +128,7 @@ Before going live:
    - Ensure `STRIPE_WEBHOOK_SECRET` is correctly set
    - Verify the webhook endpoint URL
 
-2. **Payment succeeded but tokens not added**
+2. **Payment succeeded but Bison Bucks not added**
    - Check webhook logs in Stripe Dashboard
    - Verify database connection
    - Check server logs for errors

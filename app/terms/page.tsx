@@ -29,12 +29,12 @@ export default function TermsOfService() {
 
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">1. Description of TranscribeAI</h2>
-                <p>TranscribeAI provides users with audio and video transcription services, AI-generated notes, and document generation features. We offer both free anonymous usage and paid authenticated accounts with token-based pricing.</p>
+                <p>TranscribeAI provides users with audio and video transcription services, AI-generated notes, and document generation features. We offer both free anonymous usage and paid authenticated accounts with Bison Bucks-based pricing.</p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">2. Service Access and Usage</h2>
-                <p>Anonymous users can access limited free transcription services. Authenticated users can purchase tokens to access additional features including:</p>
+                <p>Anonymous users can access limited free transcription services. Authenticated users can purchase Bison Bucks to access additional features including:</p>
                 <ul className="list-disc list-inside ml-4 space-y-2">
                   <li>Audio and video transcription</li>
                   <li>AI-generated notes and summaries</li>
@@ -45,19 +45,19 @@ export default function TermsOfService() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold text-white mb-4">3. Token System and Payments</h2>
-                <p>Our paid services operate on a token-based system where:</p>
+                <h2 className="text-2xl font-semibold text-white mb-4">3. Bison Bucks System and Payments</h2>
+                <p>Our paid services operate on a Bison Bucks-based system where:</p>
                 <ul className="list-disc list-inside ml-4 space-y-2">
-                  <li>1 token = 1 transcription</li>
-                  <li>1 token = 1 AI notes generation</li>
-                  <li>2 tokens = 1 PRD generation</li>
+                  <li>1 Bison Buck = 1 transcription</li>
+                  <li>1 Bison Buck = 1 AI notes generation</li>
+                  <li>2 Bison Bucks = 1 PRD generation</li>
                 </ul>
-                <p>Tokens are consumed only after successful completion of the requested service. All token purchases are final and non-refundable.</p>
+                <p>Bison Bucks are consumed only after successful completion of the requested service. All Bison Bucks purchases are final and non-refundable.</p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">4. Refund Policy</h2>
-                <p>All purchases are final. TranscribeAI does not offer refunds for token purchases under any circumstances, except where required by applicable law.</p>
+                <p>All purchases are final. TranscribeAI does not offer refunds for Bison Bucks purchases under any circumstances, except where required by applicable law.</p>
               </section>
 
               <section>

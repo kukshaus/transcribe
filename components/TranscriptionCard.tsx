@@ -270,9 +270,9 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                 ) : userTokens && !userTokens.hasTokens ? (
                   <div className="text-center py-4">
                     <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Tokens Remaining</h4>
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
                     <p className="text-gray-500 mb-4">
-                      You need tokens to generate PRDs. Purchase more tokens to continue creating Product Requirements Documents.
+                      You need Bison Bucks to generate PRDs. Purchase more Bison Bucks to continue creating Product Requirements Documents.
                     </p>
                     <button
                       onClick={(e) => {
@@ -308,7 +308,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                       ) : (
                         <>
                           <ScrollText className="h-5 w-5" />
-                          <span>Generate PRD (2 tokens)</span>
+                          <span>Generate PRD (2 Bison Bucks)</span>
                         </>
                       )}
                     </button>
@@ -489,9 +489,9 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                 ) : userTokens && !userTokens.hasTokens ? (
                   <div className="text-center py-4">
                     <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Tokens Remaining</h4>
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
                     <p className="text-gray-500 mb-4">
-                      You need tokens to generate AI notes. Purchase more tokens to continue.
+                      You need Bison Bucks to generate AI notes. Purchase more Bison Bucks to continue.
                     </p>
                     <button
                       onClick={(e) => {
@@ -526,7 +526,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                       ) : (
                         <>
                           <StickyNote className="h-5 w-5" />
-                          <span>Generate AI Notes (1 token)</span>
+                          <span>Generate AI Notes (1 Bison Buck)</span>
                         </>
                       )}
                     </button>
@@ -582,9 +582,9 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                 ) : userTokens && !userTokens.hasTokens ? (
                   <div className="text-center py-4">
                     <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Tokens Remaining</h4>
+                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
                     <p className="text-gray-500 mb-4">
-                      You need tokens to generate PRDs. Purchase more tokens to continue creating Product Requirements Documents.
+                      You need Bison Bucks to generate PRDs. Purchase more Bison Bucks to continue creating Product Requirements Documents.
                     </p>
                     <button
                       onClick={(e) => {
@@ -620,7 +620,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                       ) : (
                         <>
                           <ScrollText className="h-5 w-5" />
-                          <span>Generate PRD (2 tokens)</span>
+                          <span>Generate PRD (2 Bison Bucks)</span>
                         </>
                       )}
                     </button>
