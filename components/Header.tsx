@@ -2,13 +2,30 @@
 
 import Link from 'next/link'
 import { useSession, signIn } from 'next-auth/react'
-import { User } from 'lucide-react'
+import { User, Shield } from 'lucide-react'
 import SignOutButton from './SignOutButton'
 import Logo from './Logo'
 import { optimizeGoogleImageUrl, getFallbackImageUrl } from '@/lib/image-utils'
+import { useState, useEffect } from 'react'
 
 export default function Header() {
   const { data: session, status } = useSession()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      // Check if user is admin
+      fetch('/api/admin/users')
+        .then(response => {
+          if (response.status === 200) {
+            setIsAdmin(true)
+          }
+        })
+        .catch(() => {
+          // User is not admin, which is fine
+        })
+    }
+  }, [session])
 
   return (
     <header className="fixed top-0 left-0 right-0 z-30 bg-black/20 backdrop-blur-md border-b border-white/10">
@@ -29,6 +46,15 @@ export default function Header() {
             >
               Pricing
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="flex items-center space-x-1 text-white/80 hover:text-white transition-colors font-medium"
+              >
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            )}
             {status === 'loading' ? (
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
             ) : session ? (
