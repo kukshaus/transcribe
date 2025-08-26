@@ -45,7 +45,7 @@ export default function DebugTokens() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Token Debug Page</h1>
+        <h1 className="text-3xl font-bold mb-8">Bison Bucks Debug Page</h1>
         
         <div className="bg-white p-6 rounded-lg shadow mb-6">
           <h2 className="text-xl font-semibold mb-4">Current Session</h2>
@@ -82,7 +82,7 @@ export default function DebugTokens() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div><strong>ID:</strong> {user._id}</div>
                     <div><strong>Email:</strong> {user.email}</div>
-                    <div><strong>Tokens:</strong> {user.tokens || 0}</div>
+                    <div><strong>Bison Bucks:</strong> {user.tokens || 0}</div>
                     <div><strong>Created:</strong> {new Date(user.createdAt).toLocaleString()}</div>
                   </div>
                 </div>

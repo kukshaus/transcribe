@@ -122,17 +122,17 @@ export default function PaymentSuccess() {
             <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-6" />
             <h1 className="text-2xl font-bold text-white mb-4">Payment Successful!</h1>
             <p className="text-gray-300 mb-6">
-              Thank you for your purchase. Your tokens have been added to your account.
+              Thank you for your purchase. Your Bison Bucks have been added to your account.
             </p>
             
             <div className="bg-white/10 rounded-lg p-4 mb-6 border border-white/20">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-300">Current Token Balance</p>
+                <p className="text-sm text-gray-300">Current Bison Bucks Balance</p>
                 <button
                   onClick={handleRefreshTokens}
                   disabled={isRefreshing}
                   className="text-gray-400 hover:text-white transition-colors disabled:opacity-50"
-                  title="Refresh token balance"
+                  title="Refresh Bison Bucks balance"
                 >
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </button>
@@ -152,7 +152,7 @@ export default function PaymentSuccess() {
                 href="/"
                 className="block w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
               >
-                Start Using Tokens
+                Start Using Bison Bucks
               </Link>
               
               <Link 

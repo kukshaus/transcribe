@@ -262,14 +262,14 @@ export default function Home() {
         
         success(
           'Notes Ready!',
-          `AI notes created in ${duration}s. Tokens remaining: ${result.remainingTokens}`
+          `AI notes created in ${duration}s. Bison Bucks remaining: ${result.remainingTokens}`
         )
         
         await fetchTranscriptions()
         await fetchUserTokens()
       } else {
         if (result.code === 'INSUFFICIENT_TOKENS') {
-          error('No Tokens', 'You need tokens to generate notes. Purchase more tokens to continue.')
+          error('No Bison Bucks', 'You need Bison Bucks to generate notes. Purchase more Bison Bucks to continue.')
         } else {
           error('Generation Failed', result.error || 'Failed to generate notes')
         }
@@ -306,7 +306,7 @@ export default function Home() {
         // Success feedback with toast
         success(
           'PRD Ready!',
-          `Requirements document created in ${duration}s. Tokens remaining: ${result.remainingTokens}`
+          `Requirements document created in ${duration}s. Bison Bucks remaining: ${result.remainingTokens}`
         )
         
         // Refresh the transcriptions to show the new PRD
@@ -315,7 +315,7 @@ export default function Home() {
       } else {
         // More detailed error messages
         if (result.code === 'INSUFFICIENT_TOKENS') {
-          error('No Tokens', 'You need tokens to generate PRD. Purchase more tokens to continue.')
+          error('No Bison Bucks', 'You need Bison Bucks to generate PRD. Purchase more Bison Bucks to continue.')
         } else {
           let errorTitle = 'PRD Generation Failed'
           let errorMessage = result.error || 'Unknown error occurred'

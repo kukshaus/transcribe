@@ -80,17 +80,17 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       })
 
-      console.log(`Processing payment: Adding ${tokensToAdd} tokens to user ${userId} for session ${session.id}`)
+      console.log(`Processing payment: Adding ${tokensToAdd} Bison Bucks to user ${userId} for session ${session.id}`)
       
-      // Add tokens to user
+      // Add Bison Bucks to user
       await addTokensToUserWithHistory(
         userId,
         tokensToAdd,
         'token_purchase',
-        `Purchased ${tokensToAdd} tokens for $${amount.toFixed(2)}`
+        `Purchased ${tokensToAdd} Bison Bucks for $${amount.toFixed(2)}`
       )
 
-      console.log(`Successfully added ${tokensToAdd} tokens to user ${userId} for session ${session.id}`)
+      console.log(`Successfully added ${tokensToAdd} Bison Bucks to user ${userId} for session ${session.id}`)
     }
 
     return NextResponse.json({ received: true })

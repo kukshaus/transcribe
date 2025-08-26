@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       
       if (tokenCount < 1) {
         return NextResponse.json({ 
-          error: 'Insufficient tokens. You need 1 token for transcription. Please purchase more tokens to continue.',
+          error: 'Insufficient Bison Bucks. You need 1 Bison Buck for transcription. Please purchase more Bison Bucks to continue.',
           code: 'INSUFFICIENT_TOKENS',
           upgradeRequired: true
         }, { status: 402 })

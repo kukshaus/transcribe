@@ -38,9 +38,9 @@ export default function PrivacyPolicy() {
                 <p>We collect the following personal information:</p>
                 <ul className="list-disc list-inside ml-4 space-y-2 mt-2">
                   <li><strong>Name</strong>: Collected through Google OAuth to personalize your experience and communicate effectively.</li>
-                  <li><strong>Email</strong>: Used for account management, token purchase confirmations, and essential communication.</li>
+                  <li><strong>Email</strong>: Used for account management, Bison Bucks purchase confirmations, and essential communication.</li>
                   <li><strong>Google Profile Image</strong>: Used to display your avatar in the application interface.</li>
-                  <li><strong>Payment Information</strong>: Collected for processing token purchases. Payments are securely processed by Stripe, our third-party payment processor.</li>
+                  <li><strong>Payment Information</strong>: Collected for processing Bison Bucks purchases. Payments are securely processed by Stripe, our third-party payment processor.</li>
                 </ul>
 
                 <h3 className="text-xl font-medium text-white mb-3 mt-6">1.2 Content Data</h3>
@@ -57,7 +57,7 @@ export default function PrivacyPolicy() {
                 <ul className="list-disc list-inside ml-4 space-y-2 mt-2">
                   <li>IP address and browser information</li>
                   <li>Usage patterns and feature interactions</li>
-                  <li>Token consumption and spending history</li>
+                  <li>Bison Bucks consumption and spending history</li>
                   <li>Performance and error logs for service improvement</li>
                 </ul>
               </section>
@@ -67,7 +67,7 @@ export default function PrivacyPolicy() {
                 <p>We use your information for:</p>
                 <ul className="list-disc list-inside ml-4 space-y-2">
                   <li>Providing transcription and AI content generation services</li>
-                  <li>Managing your account and token balance</li>
+                  <li>Managing your account and Bison Bucks balance</li>
                   <li>Processing payments and maintaining purchase history</li>
                   <li>Improving our services and user experience</li>
                   <li>Communicating important updates and support responses</li>

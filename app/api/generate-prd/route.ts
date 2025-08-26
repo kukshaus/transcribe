@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     const { tokenCount } = await checkUserTokens(session.user.id)
     if (tokenCount < 2) {
       return NextResponse.json({ 
-        error: 'Insufficient tokens. PRD generation requires 2 tokens. Please purchase more tokens to continue.',
+        error: 'Insufficient Bison Bucks. PRD generation requires 2 Bison Bucks. Please purchase more Bison Bucks to continue.',
         code: 'INSUFFICIENT_TOKENS'
       }, { status: 402 })
     }
@@ -238,7 +238,7 @@ ${prdContent}
     
     if (!success) {
       return NextResponse.json({ 
-        error: 'Failed to consume tokens. Please try again.',
+        error: 'Failed to consume Bison Bucks. Please try again.',
         code: 'TOKEN_CONSUMPTION_FAILED'
       }, { status: 500 })
     }

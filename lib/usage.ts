@@ -220,7 +220,7 @@ export async function initializeUserTokens(userId: string): Promise<void> {
       userId,
       'free_tokens_granted',
       FREE_TOKENS_FOR_NEW_USERS,
-      `Signup gift: ${FREE_TOKENS_FOR_NEW_USERS} tokens on us!`,
+      `Signup gift: ${FREE_TOKENS_FOR_NEW_USERS} Bison Bucks on us!`,
       FREE_TOKENS_FOR_NEW_USERS,
       undefined,
       undefined,

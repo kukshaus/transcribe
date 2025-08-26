@@ -8,11 +8,11 @@ export const stripe = process.env.STRIPE_SECRET_KEY
     })
   : null
 
-// Token packages configuration
+// Bison Bucks packages configuration
 export const TOKEN_PACKAGES = [
   {
     id: 'tokens_10',
-    name: '10 Tokens',
+    name: '10 Bison Bucks',
     description: 'Perfect for getting started with transcription. Great for short meetings, interviews, or quick audio notes.',
     tokens: 10,
     price: 500, // $5.00 in cents
@@ -21,7 +21,7 @@ export const TOKEN_PACKAGES = [
   },
   {
     id: 'tokens_25',
-    name: '25 Tokens',
+    name: '25 Bison Bucks',
     description: 'Ideal for regular users. Handle weekly meetings, podcasts, and multiple audio files with ease.',
     tokens: 25,
     price: 1000, // $10.00 in cents
@@ -30,7 +30,7 @@ export const TOKEN_PACKAGES = [
   },
   {
     id: 'tokens_50',
-    name: '50 Tokens',
+    name: '50 Bison Bucks',
     description: 'Best value for power users. Perfect for content creators, researchers, and heavy transcription needs.',
     tokens: 50,
     price: 1800, // $18.00 in cents (reduced for testing)

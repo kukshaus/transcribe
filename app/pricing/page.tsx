@@ -87,7 +87,7 @@ export default function PricingPage() {
               Simple, Transparent Pricing
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Choose the token package that fits your transcription needs. 
+              Choose the Bison Bucks package that fits your transcription needs. 
               Pay once, use anytime. No subscriptions, no hidden fees.
             </p>
           </div>
@@ -122,10 +122,10 @@ export default function PricingPage() {
                   <div className="text-4xl font-bold text-white mb-1">
                     ${(pkg.price / 100).toFixed(0)}
                   </div>
-                  <p className="text-gray-300 mb-6">{pkg.tokens.toLocaleString()} tokens</p>
+                  <p className="text-gray-300 mb-6">{pkg.tokens.toLocaleString()} Bison Bucks</p>
                   
                   <div className="text-sm text-gray-400 mb-6">
-                    <div>${(pkg.price / 100 / pkg.tokens * 1000).toFixed(2)} per 1,000 tokens</div>
+                    <div>${(pkg.price / 100 / pkg.tokens * 1000).toFixed(2)} per 1,000 Bison Bucks</div>
                     {pkg.id !== 'tokens_10' && (
                       <div className="text-green-400 font-medium mt-1">
                         Save {Math.round((1 - (pkg.price / 100 / pkg.tokens) / (TOKEN_PACKAGES[0].price / 100 / TOKEN_PACKAGES[0].tokens)) * 100)}% vs Starter
@@ -198,20 +198,20 @@ export default function PricingPage() {
             <div className="grid md:grid-cols-2 gap-8">
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
                 <h3 className="text-xl font-semibold text-white mb-3">
-                  How does token usage work?
+                  How does Bison Bucks usage work?
                 </h3>
                 <p className="text-gray-300">
-                  Simple and transparent: 1 token = 1 transcription, 1 token = 1 AI notes generation, 
-                  2 tokens = 1 PRD generation. Tokens are only consumed after successful completion.
+                  Simple and transparent: 1 Bison Buck = 1 transcription, 1 Bison Buck = 1 AI notes generation, 
+                  2 Bison Bucks = 1 PRD generation. Bison Bucks are only consumed after successful completion.
                 </p>
               </div>
               
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
                 <h3 className="text-xl font-semibold text-white mb-3">
-                  Do tokens expire?
+                  Do Bison Bucks expire?
                 </h3>
                 <p className="text-gray-300">
-                  No! Your tokens never expire. Purchase once and use them whenever you need transcription services.
+                  No! Your Bison Bucks never expire. Purchase once and use them whenever you need transcription services.
                 </p>
               </div>
               
