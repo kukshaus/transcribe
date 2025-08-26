@@ -1,0 +1,70 @@
+{
+  "name": "TranscribeAI - Audio Transcription Service",
+  "short_name": "TranscribeAI",
+  "description": "Professional audio transcription service with AI-powered accuracy",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/transcribeai-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/transcribeai-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/transcribeai-logo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "TranscribeAI Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Transcription",
+      "short_name": "New",
+      "description": "Start a new audio transcription",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Transcriptions",
+      "short_name": "History",
+      "description": "View transcription history",
+      "url": "/profile",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
