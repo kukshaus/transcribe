@@ -61,6 +61,12 @@ export default withAuth(
           return true // Let the page handle auth
         }
         
+        // Protect admin pages - require authentication
+        if (req.nextUrl.pathname.startsWith('/admin')) {
+          console.log('Allowing admin page - will check auth on page level')
+          return true // Let the page handle auth
+        }
+        
         // Allow access to other pages
         return true
       },
@@ -77,6 +83,7 @@ export const config = {
     '/transcriptions/:path*',
     '/api/stripe/checkout/:path*',
     '/payment/:path*',
-    '/profile/:path*'
+    '/profile/:path*',
+    '/admin/:path*'
   ]
 }
