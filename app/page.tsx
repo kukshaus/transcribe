@@ -436,7 +436,7 @@ export default function Home() {
 
           {/* URL Input Section */}
           <div id="url-input-section" className="max-w-3xl mx-auto mb-8 sm:mb-12 px-4">
-            {status === 'loading' ? (
+            {String(status) === 'loading' ? (
               <div className="flex justify-center">
                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
               </div>
@@ -446,7 +446,7 @@ export default function Home() {
                 
                 {/* Usage Information */}
                 <div className="mt-4 sm:mt-6 text-center">
-                  {status !== 'loading' && !session ? (
+                  {!session ? (
                     // Anonymous user - show free usage
                     usageInfo && (
                       <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-white/20">
