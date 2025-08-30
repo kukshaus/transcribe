@@ -27,6 +27,21 @@ export default function Header() {
     }
   }, [session])
 
+  const stopImpersonating = async () => {
+    try {
+      const response = await fetch('/api/admin/impersonate', {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        // Refresh the page to update the session
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error stopping impersonation:', error)
+    }
+  }
+
   return (
     <header className="fixed top-0 left-0 right-0 z-30 bg-black/20 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,6 +69,19 @@ export default function Header() {
                 <Shield className="h-4 w-4" />
                 <span>Admin</span>
               </Link>
+            )}
+            {session?.user?.isImpersonating && (
+              <div className="flex items-center space-x-2 bg-yellow-600/20 border border-yellow-500/30 rounded-lg px-3 py-1">
+                <span className="text-yellow-300 text-sm font-medium">
+                  Viewing as: {session.user.email}
+                </span>
+                <button
+                  onClick={stopImpersonating}
+                  className="text-yellow-300 hover:text-yellow-100 text-sm font-medium underline"
+                >
+                  Stop
+                </button>
+              </div>
             )}
             {status === 'loading' ? (
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>

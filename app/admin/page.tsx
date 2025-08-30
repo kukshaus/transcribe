@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import AnalyticsChart from '@/components/AnalyticsChart'
 
 interface User {
   _id: string
@@ -40,6 +41,71 @@ export default function AdminDashboard() {
     reason: '',
     stripeSessionId: ''
   })
+  const [activeTab, setActiveTab] = useState<'users' | 'anonymous' | 'analytics'>('users')
+  const [anonymousUsers, setAnonymousUsers] = useState<any[]>([])
+  const [anonymousStats, setAnonymousStats] = useState<any>(null)
+  const [anonymousLoading, setAnonymousLoading] = useState(false)
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+
+  const impersonateUser = async (userId: string) => {
+    try {
+      const response = await fetch('/api/admin/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+      
+      if (response.ok) {
+        // Redirect to the main app as the impersonated user
+        window.location.href = '/'
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || 'Failed to impersonate user')
+      }
+    } catch (error) {
+      console.error('Error impersonating user:', error)
+      setError('Failed to impersonate user')
+    }
+  }
+
+  const fetchAnonymousUsers = async () => {
+    setAnonymousLoading(true)
+    try {
+      const response = await fetch('/api/admin/anonymous-users')
+      if (response.ok) {
+        const data = await response.json()
+        setAnonymousUsers(data.anonymousUsers)
+        setAnonymousStats(data.stats)
+      } else {
+        setError('Failed to fetch anonymous users')
+      }
+    } catch (error) {
+      console.error('Error fetching anonymous users:', error)
+      setError('Failed to fetch anonymous users')
+    } finally {
+      setAnonymousLoading(false)
+    }
+  }
+
+  const fetchAnalytics = async () => {
+    setAnalyticsLoading(true)
+    try {
+      const response = await fetch('/api/admin/analytics?days=30')
+      if (response.ok) {
+        const data = await response.json()
+        setAnalyticsData(data)
+      } else {
+        setError('Failed to fetch analytics')
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error)
+      setError('Failed to fetch analytics')
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }
+
 
   useEffect(() => {
     if (status === 'loading') return
@@ -52,6 +118,15 @@ export default function AdminDashboard() {
     // Check if user is admin
     checkAdminStatus()
   }, [session, status, router])
+
+  useEffect(() => {
+    if (activeTab === 'anonymous' && session?.user?.isAdmin) {
+      fetchAnonymousUsers()
+    }
+    if (activeTab === 'analytics' && session?.user?.isAdmin) {
+      fetchAnalytics()
+    }
+  }, [activeTab, session])
 
   const checkAdminStatus = async () => {
     try {
@@ -196,23 +271,68 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-gray-600">Manage users, tokens, and payment issues</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
-                Logged in as: {session?.user?.email}
-              </span>
-              <button
-                onClick={() => router.push('/')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Back to App
-              </button>
-            </div>
+                         <div className="flex items-center space-x-4">
+               <span className="text-sm text-gray-500">
+                 Logged in as: {session?.user?.email}
+               </span>
+               <button
+                 onClick={() => router.push('/admin/anonymous-users')}
+                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700"
+               >
+                 View Anonymous Users
+               </button>
+               <button
+                 onClick={() => router.push('/')}
+                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+               >
+                 Back to App
+               </button>
+             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'users'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Registered Users ({users.length})
+              </button>
+                             <button
+                 onClick={() => setActiveTab('anonymous')}
+                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                   activeTab === 'anonymous'
+                     ? 'border-blue-500 text-blue-600'
+                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                 }`}
+               >
+                 Anonymous Users {anonymousStats && `(${anonymousStats.totalUsers})`}
+               </button>
+               <button
+                 onClick={() => setActiveTab('analytics')}
+                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                   activeTab === 'analytics'
+                     ? 'border-blue-500 text-blue-600'
+                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                 }`}
+               >
+                 Analytics
+               </button>
+            </nav>
+          </div>
+        </div>
+
+        {activeTab === 'users' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Users List */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow">
@@ -259,11 +379,17 @@ export default function AdminDashboard() {
           <div className="lg:col-span-2">
             {selectedUser ? (
               <div className="space-y-6">
-                {/* User Info */}
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">User Details</h2>
-                  </div>
+                                 {/* User Info */}
+                 <div className="bg-white rounded-lg shadow">
+                   <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                     <h2 className="text-lg font-medium text-gray-900">User Details</h2>
+                     <button
+                       onClick={() => impersonateUser(selectedUser.user._id)}
+                       className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                     >
+                       View as User
+                     </button>
+                   </div>
                   <div className="px-6 py-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -382,9 +508,9 @@ export default function AdminDashboard() {
                 {/* Spending History */}
                 <div className="bg-white rounded-lg shadow">
                   <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">Recent Spending History</h2>
+                    <h2 className="text-lg font-medium text-gray-900">Complete Spending History ({selectedUser.spendingHistory.length} entries)</h2>
                   </div>
-                  <div className="max-h-64 overflow-y-auto">
+                  <div className="overflow-y-auto max-h-none">
                     {selectedUser.spendingHistory.length > 0 ? (
                       selectedUser.spendingHistory.map((item) => (
                         <div key={item._id} className="px-6 py-3 border-b border-gray-100">
@@ -392,14 +518,19 @@ export default function AdminDashboard() {
                             <div>
                               <p className="text-sm font-medium text-gray-900">{item.description}</p>
                               <p className="text-sm text-gray-500">
-                                {new Date(item.createdAt).toLocaleDateString()}
+                                {new Date(item.createdAt).toLocaleDateString()} at {new Date(item.createdAt).toLocaleTimeString()}
                               </p>
                             </div>
-                            <span className={`text-sm font-medium ${
-                              item.tokensChanged > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {item.tokensChanged > 0 ? '+' : ''}{item.tokensChanged}
-                            </span>
+                            <div className="text-right">
+                              <span className={`text-sm font-medium ${
+                                item.tokensChanged > 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {item.tokensChanged > 0 ? '+' : ''}{item.tokensChanged}
+                              </span>
+                              {item.balanceAfter !== undefined && (
+                                <p className="text-xs text-gray-400">Balance: {item.balanceAfter}</p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))
@@ -419,10 +550,228 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-        </div>
+                 </div>
+        )}
 
-        {/* Payment Failure Handler */}
-        <div className="mt-8">
+        {activeTab === 'anonymous' && (
+          <div className="space-y-6">
+            {/* Anonymous Users Stats */}
+            {anonymousStats && (
+              <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-medium text-gray-900">Anonymous Users Statistics</h2>
+                </div>
+                <div className="px-6 py-4">
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{anonymousStats.totalUsers}</p>
+                      <p className="text-sm text-gray-500">Total Anonymous Users</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">{anonymousStats.totalTranscriptions}</p>
+                      <p className="text-sm text-gray-500">Total Transcriptions</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-purple-600">{anonymousStats.transferredUsers}</p>
+                      <p className="text-sm text-gray-500">Transferred to Users</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-orange-600">{anonymousStats.activeUsers}</p>
+                      <p className="text-sm text-gray-500">Active Anonymous</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Anonymous Users List */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900">Anonymous Users List</h2>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {anonymousLoading ? (
+                  <div className="px-6 py-4 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-500">Loading anonymous users...</p>
+                  </div>
+                ) : anonymousUsers.length > 0 ? (
+                  anonymousUsers.map((user) => (
+                    <div key={user._id} className="px-6 py-4 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-medium text-gray-900">
+                              Fingerprint: {user.fingerprint.substring(0, 8)}...
+                            </p>
+                            {user.isTransferUsed && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                Transferred
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            IP: {user.ip} • Transcriptions: {user.transcriptionCount}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Created: {new Date(user.createdAt).toLocaleDateString()} at {new Date(user.createdAt).toLocaleTimeString()}
+                          </p>
+                          {user.transferredToUserId && (
+                            <p className="text-xs text-blue-600 mt-1">
+                              Transferred to user: {user.transferredToUserId}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">{user.transcriptionCount} transcriptions</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-6 py-4 text-center text-gray-500">
+                    No anonymous users found
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+                 )}
+
+         {activeTab === 'analytics' && (
+           <div className="space-y-6">
+                           {/* Analytics Summary */}
+              {analyticsData && (
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 className="text-lg font-medium text-gray-900">Analytics Summary (Last 30 Days)</h2>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-sm text-gray-500">
+                        Last updated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+                      </div>
+                      <button
+                        onClick={fetchAnalytics}
+                        disabled={analyticsLoading}
+                        className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {analyticsLoading ? 'Refreshing...' : 'Refresh'}
+                      </button>
+                    </div>
+                  </div>
+                 <div className="px-6 py-4">
+                   <div className="grid grid-cols-4 gap-4">
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-blue-600">{analyticsData.summary.totalNewUsers}</p>
+                       <p className="text-sm text-gray-500">New Registered Users</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-purple-600">{analyticsData.summary.totalNewAnonymousUsers}</p>
+                       <p className="text-sm text-gray-500">New Anonymous Users</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-green-600">{analyticsData.summary.totalTranscriptions}</p>
+                       <p className="text-sm text-gray-500">Total Transcriptions</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-orange-600">{analyticsData.summary.totalVisitors}</p>
+                       <p className="text-sm text-gray-500">Total Visitors</p>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+                           )}
+
+              {/* Today's Activity */}
+              {analyticsData && (
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">Today's Activity</h2>
+                  </div>
+                  <div className="px-6 py-4">
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-blue-600">
+                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.newUsers || 0}
+                        </p>
+                        <p className="text-sm text-gray-500">New Users Today</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-purple-600">
+                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.newAnonymousUsers || 0}
+                        </p>
+                        <p className="text-sm text-gray-500">Anonymous Users Today</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-green-600">
+                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.transcriptions || 0}
+                        </p>
+                        <p className="text-sm text-gray-500">Transcriptions Today</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-orange-600">
+                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.totalVisitors || 0}
+                        </p>
+                        <p className="text-sm text-gray-500">Total Visitors Today</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Analytics Chart */}
+             <div className="bg-white rounded-lg shadow">
+               <div className="px-6 py-4 border-b border-gray-200">
+                 <h2 className="text-lg font-medium text-gray-900">Daily Visitor Analytics</h2>
+               </div>
+               <div className="px-6 py-4">
+                 {analyticsLoading ? (
+                   <div className="flex items-center justify-center h-64">
+                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                     <p className="ml-2 text-gray-500">Loading analytics...</p>
+                   </div>
+                 ) : analyticsData ? (
+                   <AnalyticsChart 
+                     data={analyticsData.dailyStats} 
+                     title="Daily Visitor Trends"
+                     height={400}
+                   />
+                 ) : (
+                   <div className="text-center text-gray-500 h-64 flex items-center justify-center">
+                     No analytics data available
+                   </div>
+                 )}
+               </div>
+             </div>
+
+             {/* Overall Statistics */}
+             {analyticsData && (
+               <div className="bg-white rounded-lg shadow">
+                 <div className="px-6 py-4 border-b border-gray-200">
+                   <h2 className="text-lg font-medium text-gray-900">Overall Statistics</h2>
+                 </div>
+                 <div className="px-6 py-4">
+                   <div className="grid grid-cols-3 gap-4">
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-blue-600">{analyticsData.summary.totalUsers}</p>
+                       <p className="text-sm text-gray-500">Total Registered Users</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-purple-600">{analyticsData.summary.totalAnonymousUsers}</p>
+                       <p className="text-sm text-gray-500">Total Anonymous Users</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-green-600">{analyticsData.summary.totalAllTranscriptions}</p>
+                       <p className="text-sm text-gray-500">Total All-Time Transcriptions</p>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             )}
+           </div>
+         )}
+
+         {/* Payment Failure Handler */}
+         <div className="mt-8">
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-900">Payment Failure Handler</h2>

@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { MongoClient } from 'mongodb'
+import { MongoClient, ObjectId } from 'mongodb'
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -69,10 +69,62 @@ const authOptions: NextAuthOptions = {
       console.log('JWT callback returning token with uid:', token.uid)
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token, user }) {
       if (token) {
         session.user.id = token.uid as string
         console.log('Session callback - User ID set to:', session.user.id, 'for email:', session.user.email)
+        
+        // Check for impersonation
+        try {
+          const { MongoClient } = await import('mongodb')
+          const client = new MongoClient(process.env.MONGODB_URI!)
+          await client.connect()
+          const db = client.db('transcriber')
+          const usersCollection = db.collection('users')
+          
+          // Get the current user to check if they're an admin
+          const currentUser = await usersCollection.findOne({ _id: new ObjectId(session.user.id) })
+          
+          if (currentUser?.isAdmin) {
+            // Add admin flag to session
+            session.user.isAdmin = true
+            
+            // Check if there's an impersonation cookie
+            const impersonationCookie = await import('next/headers').then(h => h.cookies().get('impersonation'))
+            
+            if (impersonationCookie?.value) {
+              try {
+                const impersonationData = JSON.parse(impersonationCookie.value)
+                
+                // Verify the impersonation is valid (admin is impersonating)
+                if (impersonationData.originalAdminId === session.user.id) {
+                  // Get the impersonated user's data
+                  const impersonatedUser = await usersCollection.findOne({ 
+                    _id: new ObjectId(impersonationData.impersonatedUserId) 
+                  })
+                  
+                  if (impersonatedUser) {
+                    // Override session with impersonated user data
+                    session.user.id = impersonatedUser._id.toString()
+                    session.user.email = impersonatedUser.email
+                    session.user.name = impersonatedUser.name
+                    session.user.isImpersonating = true
+                    session.user.originalAdminId = impersonationData.originalAdminId
+                    session.user.originalAdminEmail = impersonationData.originalAdminEmail
+                    
+                    console.log('Session callback - Impersonating user:', impersonatedUser.email)
+                  }
+                }
+              } catch (error) {
+                console.error('Session callback - Error parsing impersonation cookie:', error)
+              }
+            }
+          }
+          
+          await client.close()
+        } catch (error) {
+          console.error('Session callback - Error checking impersonation:', error)
+        }
       }
       return session
     },
