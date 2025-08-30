@@ -157,7 +157,7 @@ export default function ExportDropdown({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors ${
+        className={`inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors min-h-[44px] ${
           isGeneratingPRD 
             ? 'text-purple-700 bg-purple-50 border border-purple-200 hover:bg-purple-100'
             : isGeneratingNotes
@@ -172,12 +172,13 @@ export default function ExportDropdown({
         ) : (
           <Download className="h-4 w-4" />
         )}
-        <span>{isGeneratingPRD ? 'Generating PRD...' : isGeneratingNotes ? 'Generating Notes...' : 'Export'}</span>
+        <span className="hidden sm:inline">{isGeneratingPRD ? 'Generating PRD...' : isGeneratingNotes ? 'Generating Notes...' : 'Export'}</span>
+        <span className="sm:hidden">{isGeneratingPRD ? 'PRD...' : isGeneratingNotes ? 'Notes...' : 'Export'}</span>
         <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-[200] py-1">
+        <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-[200] py-1 max-h-[80vh] overflow-y-auto">
           <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide border-b border-gray-100">
             Export Options
           </div>
@@ -187,7 +188,7 @@ export default function ExportDropdown({
               key={action.id}
               onClick={() => handleActionClick(action)}
               disabled={action.disabled}
-              className={`w-full px-3 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors group ${
+              className={`w-full px-3 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors group min-h-[44px] ${
                 action.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
               }`}
             >
@@ -212,7 +213,7 @@ export default function ExportDropdown({
                   {action.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 group-hover:text-gray-700">
+                  <div className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-gray-700">
                     {action.label}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5">
@@ -231,7 +232,7 @@ export default function ExportDropdown({
           ))}
           
           {availableActions.length === 0 && (
-            <div className="px-3 py-4 text-sm text-gray-500 text-center">
+            <div className="px-3 py-4 text-xs sm:text-sm text-gray-500 text-center">
               No export options available yet
             </div>
           )}

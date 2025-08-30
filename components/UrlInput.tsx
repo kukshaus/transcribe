@@ -108,7 +108,7 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="flex flex-col md:flex-row gap-4 items-stretch">
+      <div className="flex flex-col gap-3 sm:gap-4 items-stretch">
         <div className="flex-1 relative">
           <input
             type="url"
@@ -116,7 +116,7 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
             value={url}
             onChange={handleUrlChange}
             placeholder="Enter video URL (YouTube, SoundCloud)..."
-            className={`w-full px-6 py-4 text-lg rounded-xl border-2 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 focus:outline-none focus:ring-4 transition-all duration-200 ${
+            className={`w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg rounded-xl border-2 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 focus:outline-none focus:ring-4 transition-all duration-200 ${
               url && !isValidUrl 
                 ? 'border-red-400 focus:border-red-400 focus:ring-red-400/20' 
                 : 'border-white/20 focus:border-purple-400 focus:ring-purple-400/20'
@@ -150,7 +150,7 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
         <button
           type="submit"
           disabled={!isValidUrl || isLoading}
-          className={`px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-3 min-w-[200px] ${
+          className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 sm:space-x-3 min-h-[48px] sm:min-w-[200px] ${
             isValidUrl && !isLoading
               ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
@@ -158,13 +158,13 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-              <span>Processing...</span>
+              <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-white"></div>
+              <span className="text-sm sm:text-base">Processing...</span>
             </>
           ) : (
             <>
-              <Upload className="h-6 w-6" />
-              <span>Get Video Transcript</span>
+              <Upload className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-sm sm:text-base">Get Video Transcript</span>
             </>
           )}
         </button>
@@ -174,41 +174,41 @@ export default function UrlInput({ onSubmit, isLoading }: UrlInputProps) {
       {(isLoadingMetadata || metadata || metadataError) && isValidUrl && (
         <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
           {isLoadingMetadata ? (
-            <div className="p-4 flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              <span className="text-white">Loading video information...</span>
+            <div className="p-3 sm:p-4 flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+              <span className="text-white text-sm sm:text-base">Loading video information...</span>
             </div>
           ) : metadataError ? (
-            <div className="p-4 flex items-center space-x-3 text-yellow-300">
-              <Eye className="h-5 w-5" />
-              <span>{metadataError}</span>
+            <div className="p-3 sm:p-4 flex items-center space-x-3 text-yellow-300">
+              <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-sm sm:text-base">{metadataError}</span>
             </div>
           ) : metadata ? (
-            <div className="p-4">
-              <div className="flex items-start space-x-4">
+            <div className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row items-start space-y-3 sm:space-y-0 sm:space-x-4">
                 {metadata.thumbnail && (
                   <div className="flex-shrink-0">
                     <img
                       src={metadata.thumbnail}
                       alt="Video thumbnail"
-                      className="w-24 h-18 object-cover rounded-lg border border-white/20"
+                      className="w-20 h-15 sm:w-24 sm:h-18 object-cover rounded-lg border border-white/20"
                     />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-semibold text-lg leading-tight mb-2 line-clamp-2">
+                  <h3 className="text-white font-semibold text-base sm:text-lg leading-tight mb-2 line-clamp-2">
                     {metadata.title}
                   </h3>
-                  <div className="flex items-center space-x-4 text-sm text-gray-300">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-sm text-gray-300">
                     {metadata.duration && (
                       <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{formatDuration(metadata.duration)}</span>
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="text-xs sm:text-sm">{formatDuration(metadata.duration)}</span>
                       </div>
                     )}
                     <div className="flex items-center space-x-1">
-                      <Play className="h-4 w-4" />
-                      <span>Ready to transcribe</span>
+                      <Play className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm">Ready to transcribe</span>
                     </div>
                   </div>
                 </div>

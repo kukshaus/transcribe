@@ -23,13 +23,13 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
   const getStatusIcon = () => {
     switch (transcription.status) {
       case 'pending':
-        return <Clock className="h-5 w-5 text-yellow-500" />
+        return <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
       case 'processing':
-        return <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
+        return <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 animate-spin" />
       case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
       case 'error':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
     }
   }
 
@@ -124,16 +124,14 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
     }
   }
 
-
-
   return (
     <div 
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer group"
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer group"
       onClick={() => window.location.href = `/transcriptions/${transcription._id}`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1 pr-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+      <div className="flex flex-col sm:flex-row items-start justify-between mb-4 space-y-4 sm:space-y-0">
+        <div className="flex-1 pr-0 sm:pr-4 w-full sm:w-auto">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
             <a 
               href={`/transcriptions/${transcription._id}`}
               className="hover:text-blue-600 transition-colors cursor-pointer"
@@ -141,7 +139,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
               {transcription.title || 'Untitled Audio'}
             </a>
           </h3>
-          <p className="text-sm text-gray-500 break-all mb-3">
+          <p className="text-xs sm:text-sm text-gray-500 break-all mb-3">
             <a 
               href={transcription.url} 
               target="_blank" 
@@ -153,11 +151,11 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
               <ExternalLink className="h-3 w-3" />
             </a>
           </p>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center space-x-2">
                 {getStatusIcon()}
-                <span className={getStatusClass()}>
+                <span className={`text-xs sm:text-sm ${getStatusClass()}`}>
                   {transcription.status.charAt(0).toUpperCase() + transcription.status.slice(1)}
                 </span>
               </div>
@@ -169,13 +167,13 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
               </div>
               
               {transcription.duration && (
-                <span className="text-sm text-gray-500">
+                <span className="text-xs sm:text-sm text-gray-500">
                   Duration: {formatDuration(transcription.duration)}
                 </span>
               )}
               {(transcription.status === 'completed' || transcription.status === 'error') && 
                transcription.processingDuration && (
-                <span className="text-sm text-gray-500">
+                <span className="text-xs sm:text-sm text-gray-500">
                   Processed in: {formatProcessingDuration(transcription.processingDuration)}
                 </span>
               )}
@@ -194,7 +192,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
           {/* Progress Bar and Details */}
           {transcription.progress && transcription.status === 'processing' && (
             <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span className="font-medium text-gray-700">
                   Step {transcription.progress.stepNumber} of {transcription.progress.totalSteps}: {transcription.progress.currentStep}
                 </span>
@@ -209,7 +207,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
               </div>
               
               {transcription.progress.details && (
-                <div className="text-sm text-gray-600 italic">
+                <div className="text-xs sm:text-sm text-gray-600 italic">
                   {transcription.progress.details.includes('chunk') ? (
                     <div className="flex items-center space-x-2">
                       <div className="flex-shrink-0">
@@ -219,112 +217,16 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     </div>
                   ) : (
                     <span>{transcription.progress.details}</span>
-                                  )}
-              </div>
-            )}
-            {activeTab === 'prd' && (
-              <div>
-                {transcription.prd ? (
-                  <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-strong:text-gray-900">
-                    <div 
-                      className="text-gray-700 leading-relaxed"
-                      dangerouslySetInnerHTML={{ 
-                        __html: marked(transcription.prd, { 
-                          breaks: true,
-                          gfm: true
-                        })
-                      }}
-                    />
-                  </div>
-                ) : !isAuthenticated ? (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">AI PRD Generation Available with Sign In</h4>
-                    <p className="text-gray-500 mb-4">
-                      Get AI-generated Product Requirements Documents from your transcriptions. Sign in to unlock this feature.
-                    </p>
-                    <button
-                      onClick={() => window.location.href = '/auth/signin'}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
-                    >
-                      Sign In for AI Features
-                    </button>
-                  </div>
-                ) : !transcription.notes ? (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">Notes Required First</h4>
-                    <p className="text-gray-500 mb-4">
-                      You need to generate AI notes before creating a PRD. Generate notes first, then return here to create a comprehensive Product Requirements Document.
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setActiveTab('notes')
-                      }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
-                    >
-                      Go to Notes Tab
-                    </button>
-                  </div>
-                ) : userTokens && !userTokens.hasTokens ? (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
-                    <p className="text-gray-500 mb-4">
-                      You need Bison Bucks to generate PRDs. Purchase more Bison Bucks to continue creating Product Requirements Documents.
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        window.location.href = '/pricing'
-                      }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
-                    >
-                      View Pricing
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No PRD Generated</h4>
-                    <p className="text-gray-500 mb-4">
-                      AI-generated Product Requirements Document is not available for this transcription yet. Once you have notes, you can generate a comprehensive PRD.
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleGeneratePRD()
-                      }}
-                      disabled={isGeneratingPRD}
-                      className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Generate a comprehensive Product Requirements Document (PRD) from your AI-generated notes. This will create a structured document with goals, user stories, functional requirements, and more."
-                    >
-                      {isGeneratingPRD ? (
-                        <>
-                          <RefreshCw className="h-5 w-5 animate-spin" />
-                          <span>Generating PRD...</span>
-                        </>
-                      ) : (
-                        <>
-                          <ScrollText className="h-5 w-5" />
-                          <span>Generate PRD (2 Bison Bucks)</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
-
-
 
           {/* Error Progress */}
           {transcription.progress && transcription.status === 'error' && (
             <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span className="font-medium text-red-700">
                   ✗ {transcription.progress.currentStep}
                 </span>
@@ -338,9 +240,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
         </div>
         
         {/* Actions and Thumbnail */}
-        <div className="flex items-start space-x-3">
-
-
+        <div className="flex items-start space-x-3 w-full sm:w-auto">
           {/* Video Thumbnail */}
           {transcription.thumbnail && (
             <div className="flex-shrink-0">
@@ -351,7 +251,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                 className="block"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="relative w-32 h-20 rounded-lg overflow-hidden shadow-sm border border-gray-200 group-hover:shadow-md transition-shadow">
+                <div className="relative w-24 h-16 sm:w-32 sm:h-20 rounded-lg overflow-hidden shadow-sm border border-gray-200 group-hover:shadow-md transition-shadow">
                   <img 
                     src={transcription.thumbnail} 
                     alt={transcription.title || 'Video thumbnail'}
@@ -362,7 +262,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     }}
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center">
-                    <ExternalLink className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                    <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   </div>
                 </div>
               </a>
@@ -373,21 +273,21 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
 
       {transcription.error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm">{transcription.error}</p>
+          <p className="text-red-700 text-xs sm:text-sm">{transcription.error}</p>
         </div>
       )}
 
       {transcription.status === 'completed' && (transcription.content || transcription.notes) && (
         <div className="space-y-4">
           {/* Tab Navigation */}
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   setActiveTab('transcription')
                 }}
-                className={`flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center justify-center py-2 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex-1 sm:flex-none ${
                   activeTab === 'transcription'
                     ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -400,7 +300,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                   e.stopPropagation()
                   setActiveTab('notes')
                 }}
-                className={`flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center justify-center py-2 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex-1 sm:flex-none ${
                   activeTab === 'notes'
                     ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -416,7 +316,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                   e.stopPropagation()
                   setActiveTab('prd')
                 }}
-                className={`flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center justify-center py-2 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex-1 sm:flex-none ${
                   activeTab === 'prd'
                     ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -431,7 +331,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
             </div>
             
             {/* Export dropdown moved to tab area for better UX */}
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={(e) => e.stopPropagation()} className="w-full sm:w-auto">
               <ExportDropdown
                 transcriptionId={transcription._id!.toString()}
                 hasTranscription={!!transcription.content}
@@ -450,10 +350,10 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
           </div>
 
           {/* Content Display */}
-          <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto border border-gray-100">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4 max-h-48 sm:max-h-64 overflow-y-auto border border-gray-100">
             {activeTab === 'transcription' && transcription.content && (
               <div className="prose prose-sm max-w-none">
-                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
                   {transcription.content}
                 </p>
               </div>
@@ -463,7 +363,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                 {transcription.notes ? (
                   <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-strong:text-gray-900">
                     <div 
-                      className="text-gray-700 leading-relaxed"
+                      className="text-gray-700 leading-relaxed text-sm sm:text-base"
                       dangerouslySetInnerHTML={{ 
                         __html: marked(transcription.notes, { 
                           breaks: true,
@@ -473,24 +373,24 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     />
                   </div>
                 ) : !isAuthenticated ? (
-                  <div className="text-center py-4">
-                    <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">AI Notes Available with Sign In</h4>
-                    <p className="text-gray-500 mb-4">
+                  <div className="text-center py-3 sm:py-4">
+                    <StickyNote className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-4" />
+                    <h4 className="text-base sm:text-lg font-medium text-gray-700 mb-2">AI Notes Available with Sign In</h4>
+                    <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">
                       Get AI-generated structured notes and summaries. Sign in to unlock this feature.
                     </p>
                     <button
                       onClick={() => window.location.href = '/auth/signin'}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-all duration-200 text-sm"
                     >
                       Sign In for AI Features
                     </button>
                   </div>
                 ) : userTokens && !userTokens.hasTokens ? (
-                  <div className="text-center py-4">
-                    <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
-                    <p className="text-gray-500 mb-4">
+                  <div className="text-center py-3 sm:py-4">
+                    <StickyNote className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-4" />
+                    <h4 className="text-base sm:text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
+                    <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">
                       You need Bison Bucks to generate AI notes. Purchase more Bison Bucks to continue.
                     </p>
                     <button
@@ -498,16 +398,16 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                         e.stopPropagation()
                         window.location.href = '/pricing'
                       }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-all duration-200 text-sm"
                     >
                       View Pricing
                     </button>
                   </div>
                 ) : (
-                  <div className="text-center py-4">
-                    <StickyNote className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Notes Generated</h4>
-                    <p className="text-gray-500 mb-4">
+                  <div className="text-center py-3 sm:py-4">
+                    <StickyNote className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-4" />
+                    <h4 className="text-base sm:text-lg font-medium text-gray-700 mb-2">No Notes Generated</h4>
+                    <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">
                       AI notes are not available for this transcription yet.
                     </p>
                     <button
@@ -516,16 +416,16 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                         handleGenerateNotes()
                       }}
                       disabled={isGeneratingNotes}
-                      className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center space-x-2 bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       {isGeneratingNotes ? (
                         <>
-                          <RefreshCw className="h-5 w-5 animate-spin" />
+                          <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                           <span>Generating Notes...</span>
                         </>
                       ) : (
                         <>
-                          <StickyNote className="h-5 w-5" />
+                          <StickyNote className="h-4 w-4 sm:h-5 sm:w-5" />
                           <span>Generate AI Notes (1 Bison Buck)</span>
                         </>
                       )}
@@ -539,7 +439,7 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                 {transcription.prd ? (
                   <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-strong:text-gray-900">
                     <div 
-                      className="text-gray-700 leading-relaxed"
+                      className="text-gray-700 leading-relaxed text-sm sm:text-base"
                       dangerouslySetInnerHTML={{ 
                         __html: marked(transcription.prd, { 
                           breaks: true,
@@ -549,24 +449,24 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                     />
                   </div>
                 ) : !isAuthenticated ? (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">AI PRD Generation Available with Sign In</h4>
-                    <p className="text-gray-500 mb-4">
+                  <div className="text-center py-3 sm:py-4">
+                    <ScrollText className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-4" />
+                    <h4 className="text-base sm:text-lg font-medium text-gray-700 mb-2">AI PRD Generation Available with Sign In</h4>
+                    <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">
                       Get AI-generated Product Requirements Documents from your transcriptions. Sign in to unlock this feature.
                     </p>
                     <button
                       onClick={() => window.location.href = '/auth/signin'}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-all duration-200 text-sm"
                     >
                       Sign In for AI Features
                     </button>
                   </div>
                 ) : !transcription.notes ? (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">Notes Required First</h4>
-                    <p className="text-gray-500 mb-4">
+                  <div className="text-center py-3 sm:py-4">
+                    <ScrollText className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-4" />
+                    <h4 className="text-base sm:text-lg font-medium text-gray-700 mb-2">Notes Required First</h4>
+                    <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">
                       You need to generate AI notes before creating a PRD. Generate notes first, then return here to create a comprehensive Product Requirements Document.
                     </p>
                     <button
@@ -574,16 +474,16 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                         e.stopPropagation()
                         setActiveTab('notes')
                       }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-all duration-200 text-sm"
                     >
                       Go to Notes Tab
                     </button>
                   </div>
                 ) : userTokens && !userTokens.hasTokens ? (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
-                    <p className="text-gray-500 mb-4">
+                  <div className="text-center py-3 sm:py-4">
+                    <ScrollText className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-4" />
+                    <h4 className="text-base sm:text-lg font-medium text-gray-700 mb-2">No Bison Bucks Remaining</h4>
+                    <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">
                       You need Bison Bucks to generate PRDs. Purchase more Bison Bucks to continue creating Product Requirements Documents.
                     </p>
                     <button
@@ -591,16 +491,16 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                         e.stopPropagation()
                         window.location.href = '/pricing'
                       }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-all duration-200 text-sm"
                     >
                       View Pricing
                     </button>
                   </div>
                 ) : (
-                  <div className="text-center py-4">
-                    <ScrollText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-700 mb-2">No PRD Generated</h4>
-                    <p className="text-gray-500 mb-4">
+                  <div className="text-center py-3 sm:py-4">
+                    <ScrollText className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-4" />
+                    <h4 className="text-base sm:text-lg font-medium text-gray-700 mb-2">No PRD Generated</h4>
+                    <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">
                       AI-generated Product Requirements Document is not available for this transcription yet. Once you have notes, you can generate a comprehensive PRD.
                     </p>
                     <button
@@ -609,17 +509,17 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
                         handleGeneratePRD()
                       }}
                       disabled={isGeneratingPRD}
-                      className="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center space-x-2 bg-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                       title="Generate a comprehensive Product Requirements Document (PRD) from your AI-generated notes. This will create a structured document with goals, user stories, functional requirements, and more."
                     >
                       {isGeneratingPRD ? (
                         <>
-                          <RefreshCw className="h-5 w-5 animate-spin" />
+                          <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                           <span>Generating PRD...</span>
                         </>
                       ) : (
                         <>
-                          <ScrollText className="h-5 w-5" />
+                          <ScrollText className="h-4 w-4 sm:h-5 sm:w-5" />
                           <span>Generate PRD (2 Bison Bucks)</span>
                         </>
                       )}
@@ -635,8 +535,6 @@ export default function TranscriptionCard({ transcription, onDownload, onGenerat
       <div className="mt-4 text-xs text-gray-400">
         Created: {new Date(transcription.createdAt).toLocaleString()}
       </div>
-
-
     </div>
   )
 }
