@@ -106,7 +106,6 @@ export default function AdminDashboard() {
     }
   }
 
-
   useEffect(() => {
     if (status === 'loading') return
     
@@ -198,24 +197,32 @@ export default function AdminDashboard() {
     }
   }
 
-  const handlePaymentFailure = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const grantTokens = async () => {
     if (!paymentForm.userId || paymentForm.tokensToGrant <= 0) {
-      setError('Please fill in all required fields')
+      setError('Please select a user and enter a valid token amount')
       return
     }
 
     try {
-      const response = await fetch('/api/admin/payment-failure', {
+      const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentForm)
+        body: JSON.stringify({
+          userId: paymentForm.userId,
+          tokens: paymentForm.tokensToGrant,
+          reason: paymentForm.reason,
+          stripeSessionId: paymentForm.stripeSessionId
+        })
       })
-      
+
       if (response.ok) {
-        const data = await response.json()
-        alert(`Success: ${data.message}`)
-        setPaymentForm({ userId: '', tokensToGrant: 0, reason: '', stripeSessionId: '' })
+        // Reset form
+        setPaymentForm({
+          userId: '',
+          tokensToGrant: 0,
+          reason: '',
+          stripeSessionId: ''
+        })
         
         // Refresh users list
         const usersResponse = await fetch('/api/admin/users')
@@ -223,609 +230,354 @@ export default function AdminDashboard() {
           const data = await usersResponse.json()
           setUsers(data.users)
         }
+        
+        setError(null)
       } else {
         const errorData = await response.json()
-        setError(errorData.error || 'Failed to process payment failure')
+        setError(errorData.error || 'Failed to grant tokens')
       }
     } catch (error) {
-      console.error('Error handling payment failure:', error)
-      setError('Failed to process payment failure')
+      console.error('Error granting tokens:', error)
+      setError('Failed to grant tokens')
     }
   }
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
       </div>
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">Access Denied</div>
-          <p className="text-gray-600">{error}</p>
-          <button 
-            onClick={() => router.push('/')}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
-    )
+  if (!session) {
+    return null
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">Manage users, tokens, and payment issues</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
-                Logged in as: {session?.user?.email}
-              </span>
-              <button
-                onClick={() => router.push('/')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Back to App
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab Navigation */}
         <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'users'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Registered Users ({users.length})
-              </button>
-                             <button
-                 onClick={() => setActiveTab('anonymous')}
-                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                   activeTab === 'anonymous'
-                     ? 'border-blue-500 text-blue-600'
-                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                 }`}
-               >
-                 Anonymous Users {anonymousStats && `(${anonymousStats.totalUsers})`}
-               </button>
-               <button
-                 onClick={() => setActiveTab('analytics')}
-                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                   activeTab === 'analytics'
-                     ? 'border-blue-500 text-blue-600'
-                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                 }`}
-               >
-                 Analytics
-               </button>
-            </nav>
-          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
+          <p className="text-gray-400">Manage users, tokens, and system analytics</p>
         </div>
 
-        {activeTab === 'users' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Users List */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Users ({users.length})</h2>
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                {users.map((user) => (
-                  <div
-                    key={user._id}
-                    className={`px-6 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                      selectedUser?.user._id === user._id ? 'bg-blue-50' : ''
-                    }`}
-                    onClick={() => fetchUserDetails(user._id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{user.name || 'No name'}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">{user.tokens} tokens</p>
-                        <div className="flex items-center space-x-2">
-                          {user.isAdmin && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                              Admin
-                            </span>
-                          )}
-                          {!user.isActive && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                              Inactive
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {error && (
+          <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+            <p className="text-red-300">{error}</p>
           </div>
-
-          {/* User Details */}
-          <div className="lg:col-span-2">
-            {selectedUser ? (
-              <div className="space-y-6">
-                                 {/* User Info */}
-                 <div className="bg-white rounded-lg shadow">
-                   <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                     <h2 className="text-lg font-medium text-gray-900">User Details</h2>
-                     <button
-                       onClick={() => impersonateUser(selectedUser.user._id)}
-                       className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                     >
-                       View as User
-                     </button>
-                   </div>
-                  <div className="px-6 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Name</label>
-                        <input
-                          type="text"
-                          value={selectedUser.user.name || ''}
-                          onChange={(e) => updateUser(selectedUser.user._id, { name: e.target.value })}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
-                        <input
-                          type="email"
-                          value={selectedUser.user.email}
-                          disabled
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Tokens</label>
-                        <input
-                          type="number"
-                          value={selectedUser.user.tokens}
-                          onChange={(e) => updateUser(selectedUser.user._id, { tokens: parseInt(e.target.value) })}
-                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={selectedUser.user.isAdmin}
-                            onChange={(e) => updateUser(selectedUser.user._id, { isAdmin: e.target.checked })}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">Admin</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={selectedUser.user.isActive}
-                            onChange={(e) => updateUser(selectedUser.user._id, { isActive: e.target.checked })}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">Active</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stats */}
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">Statistics</h2>
-                  </div>
-                  <div className="px-6 py-4">
-                    <div className="grid grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">{selectedUser.stats.totalTranscriptions}</p>
-                        <p className="text-sm text-gray-500">Total Transcriptions</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-green-600">{selectedUser.stats.completedTranscriptions}</p>
-                        <p className="text-sm text-gray-500">Completed</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-red-600">{selectedUser.stats.totalSpent}</p>
-                        <p className="text-sm text-gray-500">Tokens Spent</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-green-600">{selectedUser.stats.totalEarned}</p>
-                        <p className="text-sm text-gray-500">Tokens Earned</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Transcriptions */}
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">Recent Transcriptions</h2>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {selectedUser.transcriptions.length > 0 ? (
-                      selectedUser.transcriptions.map((transcription) => (
-                        <div key={transcription._id} className="px-6 py-3 border-b border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{transcription.title || 'Untitled'}</p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(transcription.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                              transcription.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              transcription.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                              transcription.status === 'error' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {transcription.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-6 py-4 text-center text-gray-500">
-                        No transcriptions found
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Spending History */}
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">Complete Spending History ({selectedUser.spendingHistory.length} entries)</h2>
-                  </div>
-                  <div className="overflow-y-auto max-h-none">
-                    {selectedUser.spendingHistory.length > 0 ? (
-                      selectedUser.spendingHistory.map((item) => (
-                        <div key={item._id} className="px-6 py-3 border-b border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(item.createdAt).toLocaleDateString()} at {new Date(item.createdAt).toLocaleTimeString()}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <span className={`text-sm font-medium ${
-                                item.tokensChanged > 0 ? 'text-green-600' : 'text-red-600'
-                              }`}>
-                                {item.tokensChanged > 0 ? '+' : ''}{item.tokensChanged}
-                              </span>
-                              {item.balanceAfter !== undefined && (
-                                <p className="text-xs text-gray-400">Balance: {item.balanceAfter}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-6 py-4 text-center text-gray-500">
-                        No spending history found
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow">
-                <div className="px-6 py-12 text-center">
-                  <p className="text-gray-500">Select a user to view details</p>
-                </div>
-              </div>
-            )}
-          </div>
-                 </div>
         )}
 
-        {activeTab === 'anonymous' && (
-          <div className="space-y-6">
-            {/* Anonymous Users Stats */}
-            {anonymousStats && (
-              <div className="bg-white rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900">Anonymous Users Statistics</h2>
-                </div>
-                <div className="px-6 py-4">
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{anonymousStats.totalUsers}</p>
-                      <p className="text-sm text-gray-500">Total Anonymous Users</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{anonymousStats.totalTranscriptions}</p>
-                      <p className="text-sm text-gray-500">Total Transcriptions</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">{anonymousStats.transferredUsers}</p>
-                      <p className="text-sm text-gray-500">Transferred to Users</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-orange-600">{anonymousStats.activeUsers}</p>
-                      <p className="text-sm text-gray-500">Active Anonymous</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Tab Navigation */}
+        <div className="mb-6 border-b border-gray-700">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'users'
+                  ? 'border-purple-500 text-purple-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              Users
+            </button>
+            <button
+              onClick={() => setActiveTab('anonymous')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'anonymous'
+                  ? 'border-purple-500 text-purple-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              Anonymous Users
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'analytics'
+                  ? 'border-purple-500 text-purple-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              Analytics
+            </button>
+          </nav>
+        </div>
 
-            {/* Anonymous Users List */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Anonymous Users List</h2>
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                {anonymousLoading ? (
-                  <div className="px-6 py-4 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-2 text-gray-500">Loading anonymous users...</p>
-                  </div>
-                ) : anonymousUsers.length > 0 ? (
-                  anonymousUsers.map((user) => (
-                    <div key={user._id} className="px-6 py-4 border-b border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium text-gray-900">
-                              Fingerprint: {user.fingerprint.substring(0, 8)}...
-                            </p>
-                            {user.isTransferUsed && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                Transferred
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500 mt-1">
-                            IP: {user.ip} • Transcriptions: {user.transcriptionCount}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            Created: {new Date(user.createdAt).toLocaleDateString()} at {new Date(user.createdAt).toLocaleTimeString()}
-                          </p>
-                          {user.transferredToUserId && (
-                            <p className="text-xs text-blue-600 mt-1">
-                              Transferred to user: {user.transferredToUserId}
-                            </p>
-                          )}
+        {/* Users Tab */}
+        {activeTab === 'users' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Users List */}
+            <div className="lg:col-span-2">
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Users</h2>
+                <div className="space-y-4">
+                  {users.map((user) => (
+                    <div
+                      key={user._id}
+                      className="bg-gray-700 rounded-lg p-4 flex items-center justify-between"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-medium">
+                            {user.name?.charAt(0) || user.email.charAt(0)}
+                          </span>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900">{user.transcriptionCount} transcriptions</p>
+                        <div>
+                          <p className="font-medium text-white">{user.name || 'No name'}</p>
+                          <p className="text-gray-400 text-sm">{user.email}</p>
                         </div>
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-purple-400 font-medium">{user.tokens} tokens</span>
+                        <button
+                          onClick={() => fetchUserDetails(user._id)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm"
+                        >
+                          Details
+                        </button>
+                        <button
+                          onClick={() => impersonateUser(user._id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                        >
+                          Impersonate
+                        </button>
+                      </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="px-6 py-4 text-center text-gray-500">
-                    No anonymous users found
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-                 )}
 
-         {activeTab === 'analytics' && (
-           <div className="space-y-6">
-                           {/* Analytics Summary */}
-              {analyticsData && (
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h2 className="text-lg font-medium text-gray-900">Analytics Summary (Last 30 Days)</h2>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-sm text-gray-500">
-                        Last updated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
-                      </div>
-                      <button
-                        onClick={fetchAnalytics}
-                        disabled={analyticsLoading}
-                        className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {analyticsLoading ? 'Refreshing...' : 'Refresh'}
-                      </button>
-                    </div>
-                  </div>
-                 <div className="px-6 py-4">
-                   <div className="grid grid-cols-4 gap-4">
-                     <div className="text-center">
-                       <p className="text-2xl font-bold text-blue-600">{analyticsData.summary.totalNewUsers}</p>
-                       <p className="text-sm text-gray-500">New Registered Users</p>
-                     </div>
-                     <div className="text-center">
-                       <p className="text-2xl font-bold text-purple-600">{analyticsData.summary.totalNewAnonymousUsers}</p>
-                       <p className="text-sm text-gray-500">New Anonymous Users</p>
-                     </div>
-                     <div className="text-center">
-                       <p className="text-2xl font-bold text-green-600">{analyticsData.summary.totalTranscriptions}</p>
-                       <p className="text-sm text-gray-500">Total Transcriptions</p>
-                     </div>
-                     <div className="text-center">
-                       <p className="text-2xl font-bold text-orange-600">{analyticsData.summary.totalVisitors}</p>
-                       <p className="text-sm text-gray-500">Total Visitors</p>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-                           )}
-
-              {/* Today's Activity */}
-              {analyticsData && (
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">Today's Activity</h2>
-                  </div>
-                  <div className="px-6 py-4">
-                    <div className="grid grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">
-                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.newUsers || 0}
-                        </p>
-                        <p className="text-sm text-gray-500">New Users Today</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-600">
-                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.newAnonymousUsers || 0}
-                        </p>
-                        <p className="text-sm text-gray-500">Anonymous Users Today</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-green-600">
-                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.transcriptions || 0}
-                        </p>
-                        <p className="text-sm text-gray-500">Transcriptions Today</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-orange-600">
-                          {analyticsData.dailyStats[analyticsData.dailyStats.length - 1]?.totalVisitors || 0}
-                        </p>
-                        <p className="text-sm text-gray-500">Total Visitors Today</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Analytics Chart */}
-             <div className="bg-white rounded-lg shadow">
-               <div className="px-6 py-4 border-b border-gray-200">
-                 <h2 className="text-lg font-medium text-gray-900">Daily Visitor Analytics</h2>
-               </div>
-               <div className="px-6 py-4">
-                 {analyticsLoading ? (
-                   <div className="flex items-center justify-center h-64">
-                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                     <p className="ml-2 text-gray-500">Loading analytics...</p>
-                   </div>
-                 ) : analyticsData ? (
-                   <AnalyticsChart 
-                     data={analyticsData.dailyStats} 
-                     title="Daily Visitor Trends"
-                     height={400}
-                   />
-                 ) : (
-                   <div className="text-center text-gray-500 h-64 flex items-center justify-center">
-                     No analytics data available
-                   </div>
-                 )}
-               </div>
-             </div>
-
-             {/* Overall Statistics */}
-             {analyticsData && (
-               <div className="bg-white rounded-lg shadow">
-                 <div className="px-6 py-4 border-b border-gray-200">
-                   <h2 className="text-lg font-medium text-gray-900">Overall Statistics</h2>
-                 </div>
-                 <div className="px-6 py-4">
-                   <div className="grid grid-cols-3 gap-4">
-                     <div className="text-center">
-                       <p className="text-2xl font-bold text-blue-600">{analyticsData.summary.totalUsers}</p>
-                       <p className="text-sm text-gray-500">Total Registered Users</p>
-                     </div>
-                     <div className="text-center">
-                       <p className="text-2xl font-bold text-purple-600">{analyticsData.summary.totalAnonymousUsers}</p>
-                       <p className="text-sm text-gray-500">Total Anonymous Users</p>
-                     </div>
-                     <div className="text-center">
-                       <p className="text-2xl font-bold text-green-600">{analyticsData.summary.totalAllTranscriptions}</p>
-                       <p className="text-sm text-gray-500">Total All-Time Transcriptions</p>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-             )}
-           </div>
-         )}
-
-         {/* Payment Failure Handler */}
-         <div className="mt-8">
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Payment Failure Handler</h2>
-            </div>
-            <div className="px-6 py-4">
-              <form onSubmit={handlePaymentFailure} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Grant Tokens Form */}
+            <div className="lg:col-span-1">
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Grant Tokens</h2>
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">User ID</label>
-                    <input
-                      type="text"
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Select User
+                    </label>
+                    <select
                       value={paymentForm.userId}
                       onChange={(e) => setPaymentForm({ ...paymentForm, userId: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter user ID"
-                    />
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                    >
+                      <option value="">Choose a user...</option>
+                      {users.map((user) => (
+                        <option key={user._id} value={user._id}>
+                          {user.name || user.email}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                  
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Tokens to Grant</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Tokens to Grant
+                    </label>
                     <input
                       type="number"
                       value={paymentForm.tokensToGrant}
                       onChange={(e) => setPaymentForm({ ...paymentForm, tokensToGrant: parseInt(e.target.value) || 0 })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Number of tokens"
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                      placeholder="Enter token amount"
                     />
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Reason</label>
-                  <input
-                    type="text"
-                    value={paymentForm.reason}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, reason: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Payment failure reason"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Stripe Session ID (Optional)</label>
-                  <input
-                    type="text"
-                    value={paymentForm.stripeSessionId}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, stripeSessionId: e.target.value })}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Stripe session ID for reference"
-                  />
-                </div>
-                <div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Reason (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentForm.reason}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, reason: e.target.value })}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                      placeholder="e.g., Customer support, Promotional"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Stripe Session ID (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentForm.stripeSessionId}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, stripeSessionId: e.target.value })}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                      placeholder="cs_test_..."
+                    />
+                  </div>
+                  
                   <button
-                    type="submit"
-                    className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    onClick={grantTokens}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                   >
-                    Grant Tokens for Payment Failure
+                    Grant Tokens
                   </button>
                 </div>
-              </form>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Anonymous Users Tab */}
+        {activeTab === 'anonymous' && (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Anonymous Users</h2>
+            {anonymousLoading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-400">Loading anonymous users...</div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {anonymousStats && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-gray-700 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-purple-400">{anonymousStats.totalUsers}</div>
+                      <div className="text-gray-400 text-sm">Total Anonymous Users</div>
+                    </div>
+                    <div className="bg-gray-700 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-blue-400">{anonymousStats.totalTranscriptions}</div>
+                      <div className="text-gray-400 text-sm">Total Transcriptions</div>
+                    </div>
+                    <div className="bg-gray-700 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-green-400">{anonymousStats.totalDuration}</div>
+                      <div className="text-gray-400 text-sm">Total Duration (min)</div>
+                    </div>
+                    <div className="bg-gray-700 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-yellow-400">{anonymousStats.avgTranscriptionsPerUser}</div>
+                      <div className="text-gray-400 text-sm">Avg Transcriptions/User</div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  {anonymousUsers.map((user, index) => (
+                    <div key={index} className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-white">Anonymous User {index + 1}</p>
+                        <p className="text-gray-400 text-sm">Fingerprint: {user.fingerprint}</p>
+                        <p className="text-gray-400 text-sm">Transcriptions: {user.transcriptionCount}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-purple-400 font-medium">{user.totalDuration} min</p>
+                        <p className="text-gray-400 text-sm">{user.lastActivity}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Analytics (Last 30 Days)</h2>
+            {analyticsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-400">Loading analytics...</div>
+              </div>
+            ) : analyticsData ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-purple-400">{analyticsData.totalUsers}</div>
+                    <div className="text-gray-400 text-sm">Total Users</div>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-blue-400">{analyticsData.totalTranscriptions}</div>
+                    <div className="text-gray-400 text-sm">Total Transcriptions</div>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-green-400">{analyticsData.totalRevenue}</div>
+                    <div className="text-gray-400 text-sm">Total Revenue ($)</div>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-yellow-400">{analyticsData.avgTranscriptionsPerUser}</div>
+                    <div className="text-gray-400 text-sm">Avg Transcriptions/User</div>
+                  </div>
+                </div>
+                
+                {analyticsData.chartData && (
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">Transcription Activity</h3>
+                    <AnalyticsChart data={analyticsData.chartData} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-400">No analytics data available</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* User Details Modal */}
+        {selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">User Details</h2>
+                <button
+                  onClick={() => setSelectedUser(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">User Information</h3>
+                  <p><strong>Name:</strong> {selectedUser.user.name || 'No name'}</p>
+                  <p><strong>Email:</strong> {selectedUser.user.email}</p>
+                  <p><strong>Tokens:</strong> {selectedUser.user.tokens}</p>
+                  <p><strong>Admin:</strong> {selectedUser.user.isAdmin ? 'Yes' : 'No'}</p>
+                  <p><strong>Active:</strong> {selectedUser.user.isActive ? 'Yes' : 'No'}</p>
+                  <p><strong>Created:</strong> {new Date(selectedUser.user.createdAt).toLocaleDateString()}</p>
+                </div>
+                
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">Statistics</h3>
+                  <p><strong>Total Transcriptions:</strong> {selectedUser.stats.totalTranscriptions}</p>
+                  <p><strong>Completed Transcriptions:</strong> {selectedUser.stats.completedTranscriptions}</p>
+                  <p><strong>Total Spent:</strong> ${selectedUser.stats.totalSpent}</p>
+                  <p><strong>Total Earned:</strong> ${selectedUser.stats.totalEarned}</p>
+                </div>
+                
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">Recent Transcriptions</h3>
+                  <div className="space-y-2">
+                    {selectedUser.transcriptions.slice(0, 5).map((transcription: any) => (
+                      <div key={transcription._id} className="flex items-center justify-between">
+                        <span className="text-sm">{transcription.title || 'Untitled'}</span>
+                        <span className="text-sm text-gray-400">{transcription.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">Recent Spending</h3>
+                  <div className="space-y-2">
+                    {selectedUser.spendingHistory.slice(0, 5).map((spending: any) => (
+                      <div key={spending._id} className="flex items-center justify-between">
+                        <span className="text-sm">{spending.description}</span>
+                        <span className="text-sm text-gray-400">${spending.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
