@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AnalyticsChart from '@/components/AnalyticsChart'
+import AdminTranscriptionCard from '@/components/AdminTranscriptionCard'
 
 interface User {
   _id: string
@@ -41,12 +42,25 @@ export default function AdminDashboard() {
     reason: '',
     stripeSessionId: ''
   })
-  const [activeTab, setActiveTab] = useState<'users' | 'anonymous' | 'analytics'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'anonymous' | 'analytics' | 'transcriptions'>('users')
   const [anonymousUsers, setAnonymousUsers] = useState<any[]>([])
   const [anonymousStats, setAnonymousStats] = useState<any>(null)
   const [anonymousLoading, setAnonymousLoading] = useState(false)
   const [analyticsData, setAnalyticsData] = useState<any>(null)
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const [allTranscriptions, setAllTranscriptions] = useState<any[]>([])
+  const [transcriptionsStats, setTranscriptionsStats] = useState<any>(null)
+  const [transcriptionsLoading, setTranscriptionsLoading] = useState(false)
+  const [transcriptionsPagination, setTranscriptionsPagination] = useState<any>(null)
+  const [transcriptionsFilters, setTranscriptionsFilters] = useState({
+    page: 1,
+    limit: 50,
+    status: '',
+    search: '',
+    userId: '',
+    userFingerprint: '',
+    hasContent: ''
+  })
 
   const impersonateUser = async (userId: string) => {
     try {
@@ -106,6 +120,36 @@ export default function AdminDashboard() {
     }
   }
 
+  const fetchAllTranscriptions = async () => {
+    setTranscriptionsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: transcriptionsFilters.page.toString(),
+        limit: transcriptionsFilters.limit.toString(),
+        ...(transcriptionsFilters.status && { status: transcriptionsFilters.status }),
+        ...(transcriptionsFilters.search && { search: transcriptionsFilters.search }),
+        ...(transcriptionsFilters.userId && { userId: transcriptionsFilters.userId }),
+        ...(transcriptionsFilters.userFingerprint && { userFingerprint: transcriptionsFilters.userFingerprint }),
+        ...(transcriptionsFilters.hasContent && { hasContent: transcriptionsFilters.hasContent })
+      })
+      
+      const response = await fetch(`/api/admin/all-transcriptions?${params}`)
+      if (response.ok) {
+        const data = await response.json()
+        setAllTranscriptions(data.transcriptions)
+        setTranscriptionsStats(data.stats)
+        setTranscriptionsPagination(data.pagination)
+      } else {
+        setError('Failed to fetch transcriptions')
+      }
+    } catch (error) {
+      console.error('Error fetching transcriptions:', error)
+      setError('Failed to fetch transcriptions')
+    } finally {
+      setTranscriptionsLoading(false)
+    }
+  }
+
 
   useEffect(() => {
     if (status === 'loading') return
@@ -125,6 +169,9 @@ export default function AdminDashboard() {
     }
     if (activeTab === 'analytics' && session?.user?.isAdmin) {
       fetchAnalytics()
+    }
+    if (activeTab === 'transcriptions' && session?.user?.isAdmin) {
+      fetchAllTranscriptions()
     }
   }, [activeTab, session])
 
@@ -233,6 +280,87 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleDownload = async (id: string, type: 'transcription' | 'notes' | 'notion' | 'prd' | 'audio') => {
+    try {
+      const transcription = allTranscriptions.find(t => t._id?.toString() === id)
+      const title = transcription?.title || 'content'
+      
+      const response = await fetch(`/api/download?id=${id}&type=${type}`)
+      
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        
+        // Get filename from Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition')
+        let filename = `${type}.txt`
+        
+        if (contentDisposition) {
+          // Try to extract filename from Content-Disposition header
+          const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+          if (filenameMatch && filenameMatch[1]) {
+            filename = filenameMatch[1].replace(/['"]/g, '')
+          }
+        }
+        
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } else {
+        console.error('Download failed:', response.status, response.statusText)
+      }
+    } catch (error) {
+      console.error('Error downloading file:', error)
+    }
+  }
+
+  const handleGeneratePRD = async (id: string) => {
+    try {
+      const response = await fetch('/api/generate-prd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcriptionId: id })
+      })
+      
+      if (response.ok) {
+        // Refresh transcriptions to show the new PRD
+        await fetchAllTranscriptions()
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || 'Failed to generate PRD')
+      }
+    } catch (error) {
+      console.error('Error generating PRD:', error)
+      setError('Failed to generate PRD')
+    }
+  }
+
+  const handleGenerateNotes = async (id: string) => {
+    try {
+      const response = await fetch('/api/generate-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcriptionId: id })
+      })
+      
+      if (response.ok) {
+        // Refresh transcriptions to show the new notes
+        await fetchAllTranscriptions()
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || 'Failed to generate notes')
+      }
+    } catch (error) {
+      console.error('Error generating notes:', error)
+      setError('Failed to generate notes')
+    }
+  }
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -311,16 +439,26 @@ export default function AdminDashboard() {
                >
                  Anonymous Users {anonymousStats && `(${anonymousStats.totalUsers})`}
                </button>
-               <button
-                 onClick={() => setActiveTab('analytics')}
-                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                   activeTab === 'analytics'
-                     ? 'border-blue-500 text-blue-600'
-                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                 }`}
-               >
-                 Analytics
-               </button>
+                             <button
+                onClick={() => setActiveTab('analytics')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'analytics'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Analytics
+              </button>
+              <button
+                onClick={() => setActiveTab('transcriptions')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'transcriptions'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                All Transcriptions {transcriptionsStats && `(${transcriptionsStats.total})`}
+              </button>
             </nav>
           </div>
         </div>
@@ -761,6 +899,226 @@ export default function AdminDashboard() {
                  </div>
                </div>
              )}
+           </div>
+         )}
+
+         {activeTab === 'transcriptions' && (
+           <div className="space-y-6">
+             {/* Transcriptions Statistics */}
+             {transcriptionsStats && (
+               <div className="bg-white rounded-lg shadow">
+                 <div className="px-6 py-4 border-b border-gray-200">
+                   <h2 className="text-lg font-medium text-gray-900">Transcriptions Overview</h2>
+                 </div>
+                 <div className="px-6 py-4">
+                   <div className="grid grid-cols-6 gap-4">
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-blue-600">{transcriptionsStats.total}</p>
+                       <p className="text-sm text-gray-500">Total</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-green-600">{transcriptionsStats.completed}</p>
+                       <p className="text-sm text-gray-500">Completed</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-yellow-600">{transcriptionsStats.processing}</p>
+                       <p className="text-sm text-gray-500">Processing</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-gray-600">{transcriptionsStats.pending}</p>
+                       <p className="text-sm text-gray-500">Pending</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-red-600">{transcriptionsStats.error}</p>
+                       <p className="text-sm text-gray-500">Error</p>
+                     </div>
+                     <div className="text-center">
+                       <p className="text-2xl font-bold text-purple-600">{transcriptionsStats.public}</p>
+                       <p className="text-sm text-gray-500">Public</p>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             )}
+
+             {/* Filters */}
+             <div className="bg-white rounded-lg shadow">
+               <div className="px-6 py-4 border-b border-gray-200">
+                 <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+               </div>
+               <div className="px-6 py-4">
+                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700">Search</label>
+                     <input
+                       type="text"
+                       value={transcriptionsFilters.search}
+                       onChange={(e) => {
+                         setTranscriptionsFilters({ ...transcriptionsFilters, search: e.target.value, page: 1 })
+                         setTimeout(() => fetchAllTranscriptions(), 500)
+                       }}
+                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Search by title or content..."
+                     />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700">Status</label>
+                     <select
+                       value={transcriptionsFilters.status}
+                       onChange={(e) => {
+                         setTranscriptionsFilters({ ...transcriptionsFilters, status: e.target.value, page: 1 })
+                         setTimeout(() => fetchAllTranscriptions(), 100)
+                       }}
+                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                     >
+                       <option value="">All Statuses</option>
+                       <option value="completed">Completed</option>
+                       <option value="processing">Processing</option>
+                       <option value="pending">Pending</option>
+                       <option value="error">Error</option>
+                     </select>
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700">User ID</label>
+                     <input
+                       type="text"
+                       value={transcriptionsFilters.userId}
+                       onChange={(e) => {
+                         setTranscriptionsFilters({ ...transcriptionsFilters, userId: e.target.value, page: 1 })
+                         setTimeout(() => fetchAllTranscriptions(), 500)
+                       }}
+                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Filter by user ID..."
+                     />
+                   </div>
+                                        <div>
+                       <label className="block text-sm font-medium text-gray-700">Fingerprint</label>
+                       <input
+                         type="text"
+                         value={transcriptionsFilters.userFingerprint}
+                         onChange={(e) => {
+                           setTranscriptionsFilters({ ...transcriptionsFilters, userFingerprint: e.target.value, page: 1 })
+                           setTimeout(() => fetchAllTranscriptions(), 500)
+                         }}
+                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                         placeholder="Filter by fingerprint..."
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700">Has Content</label>
+                       <select
+                         value={transcriptionsFilters.hasContent || ''}
+                         onChange={(e) => {
+                           setTranscriptionsFilters({ ...transcriptionsFilters, hasContent: e.target.value, page: 1 })
+                           setTimeout(() => fetchAllTranscriptions(), 100)
+                         }}
+                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                       >
+                         <option value="">All</option>
+                         <option value="true">With Content</option>
+                         <option value="false">Without Content</option>
+                       </select>
+                     </div>
+                 </div>
+                 <div className="mt-4 flex justify-between items-center">
+                   <div className="flex items-center space-x-4">
+                     <label className="flex items-center">
+                       <span className="text-sm text-gray-700 mr-2">Show:</span>
+                       <select
+                         value={transcriptionsFilters.limit}
+                         onChange={(e) => {
+                           setTranscriptionsFilters({ ...transcriptionsFilters, limit: parseInt(e.target.value), page: 1 })
+                           setTimeout(() => fetchAllTranscriptions(), 100)
+                         }}
+                         className="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                       >
+                         <option value={25}>25</option>
+                         <option value={50}>50</option>
+                         <option value={100}>100</option>
+                       </select>
+                     </label>
+                   </div>
+                   <button
+                     onClick={fetchAllTranscriptions}
+                     disabled={transcriptionsLoading}
+                     className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     {transcriptionsLoading ? 'Refreshing...' : 'Refresh'}
+                   </button>
+                 </div>
+               </div>
+             </div>
+
+                           {/* Transcriptions Cards */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-medium text-gray-900">All Transcriptions</h2>
+                </div>
+                <div className="p-6">
+                  {transcriptionsLoading ? (
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="mt-2 text-gray-500">Loading transcriptions...</p>
+                    </div>
+                  ) : allTranscriptions.length > 0 ? (
+                    <div className="space-y-6">
+                      {allTranscriptions.map((transcription) => (
+                        <AdminTranscriptionCard
+                          key={transcription._id}
+                          transcription={transcription}
+                          onDownload={handleDownload}
+                          onGeneratePRD={handleGeneratePRD}
+                          onGenerateNotes={handleGenerateNotes}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      No transcriptions found
+                    </div>
+                  )}
+                </div>
+               
+               {/* Pagination */}
+               {transcriptionsPagination && transcriptionsPagination.totalPages > 1 && (
+                 <div className="px-6 py-4 border-t border-gray-200">
+                   <div className="flex items-center justify-between">
+                     <div className="text-sm text-gray-500">
+                       Showing {((transcriptionsPagination.page - 1) * transcriptionsPagination.limit) + 1} to {Math.min(transcriptionsPagination.page * transcriptionsPagination.limit, transcriptionsPagination.total)} of {transcriptionsPagination.total} results
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <button
+                         onClick={() => {
+                           if (transcriptionsPagination.page > 1) {
+                             setTranscriptionsFilters({ ...transcriptionsFilters, page: transcriptionsPagination.page - 1 })
+                             setTimeout(() => fetchAllTranscriptions(), 100)
+                           }
+                         }}
+                         disabled={transcriptionsPagination.page <= 1}
+                         className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                       >
+                         Previous
+                       </button>
+                       <span className="text-sm text-gray-500">
+                         Page {transcriptionsPagination.page} of {transcriptionsPagination.totalPages}
+                       </span>
+                       <button
+                         onClick={() => {
+                           if (transcriptionsPagination.page < transcriptionsPagination.totalPages) {
+                             setTranscriptionsFilters({ ...transcriptionsFilters, page: transcriptionsPagination.page + 1 })
+                             setTimeout(() => fetchAllTranscriptions(), 100)
+                           }
+                         }}
+                         disabled={transcriptionsPagination.page >= transcriptionsPagination.totalPages}
+                         className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                       >
+                         Next
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               )}
+             </div>
            </div>
          )}
 
