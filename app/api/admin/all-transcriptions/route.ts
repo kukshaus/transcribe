@@ -41,7 +41,10 @@ export async function GET(request: NextRequest) {
     }
     
     if (hasContent === 'true') {
-      matchConditions.content = { $exists: true, $ne: null, $ne: '' }
+      matchConditions.content = { 
+        $exists: true, 
+        $nin: [null, ''] 
+      }
     } else if (hasContent === 'false') {
       matchConditions.$or = [
         { content: { $exists: false } },
